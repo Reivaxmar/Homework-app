@@ -5,16 +5,16 @@ from enum import Enum as PyEnum
 from .database import Base
 
 class WeekDay(PyEnum):
-    MONDAY = "monday"
-    TUESDAY = "tuesday"
-    WEDNESDAY = "wednesday"
-    THURSDAY = "thursday"
-    FRIDAY = "friday"
+    MONDAY = "MONDAY"
+    TUESDAY = "TUESDAY"
+    WEDNESDAY = "WEDNESDAY"
+    THURSDAY = "THURSDAY"
+    FRIDAY = "FRIDAY"
 
 class SlotType(PyEnum):
-    CLASS = "class"
-    READING = "reading"
-    FREE = "free"
+    CLASS = "CLASS"
+    READING = "READING"
+    FREE = "FREE"
 
 class Schedule(Base):
     __tablename__ = "schedules"
