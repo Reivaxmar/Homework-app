@@ -1,1 +1,235 @@
-# Homework-app
+# Homework Management App
+
+A comprehensive web application for managing school schedules and homework assignments. Built with React, TailwindCSS, and FastAPI.
+
+## Features
+
+### 📚 Class Management
+- Create and manage school classes with teacher information
+- Color-coded classes for easy identification
+- Optional half-group support (A, B groups)
+- Year-based organization
+
+### 📅 Schedule Management
+- Interactive 5-day weekly schedule grid
+- 6 periods per day with customizable time slots
+- Editable schedule slots - click to assign classes
+- Built-in reading/free time periods
+- Real-time schedule updates
+
+### 📝 Homework Tracking
+- Create and manage homework assignments
+- Link homework to specific classes
+- Priority levels (Low, Medium, High)
+- Due date tracking with overdue detection
+- Status management (Pending, In Progress, Completed)
+- Filter homework by status and due dates
+
+### 📊 Dashboard
+- Overview statistics for classes and homework
+- Quick access to pending, due today, and overdue assignments
+- Weekly completion tracking
+- Visual indicators for urgent tasks
+
+### 📱 responsive Design
+- Mobile-first responsive design
+- Works seamlessly on desktop, tablet, and mobile devices
+- Collapsible navigation for mobile
+
+## Technology Stack
+
+### Backend
+- **FastAPI** - Modern Python web framework
+- **SQLAlchemy** - Database ORM
+- **SQLite** - Lightweight database
+- **Pydantic** - Data validation
+- **Uvicorn** - ASGI server
+
+### Frontend
+- **React 18** - UI framework
+- **TailwindCSS** - Utility-first CSS framework
+- **React Router** - Client-side routing
+- **Axios** - HTTP client
+- **React Hook Form** - Form handling
+- **React Hot Toast** - Notifications
+- **Lucide React** - Icon library
+- **Vite** - Build tool
+
+## Project Structure
+
+```
+homework-app/
+├── backend/                 # FastAPI backend
+│   ├── app/
+│   │   ├── models/         # Database models
+│   │   │   ├── classes.py
+│   │   │   ├── schedule.py
+│   │   │   └── homework.py
+│   │   ├── routers/        # API endpoints
+│   │   │   ├── classes.py
+│   │   │   ├── schedules.py
+│   │   │   ├── homework.py
+│   │   │   └── dashboard.py
+│   │   ├── schemas.py      # Pydantic models
+│   │   └── main.py         # FastAPI app
+│   ├── requirements.txt
+│   └── run.py
+├── frontend/               # React frontend
+│   ├── src/
+│   │   ├── components/     # React components
+│   │   │   └── Layout.jsx
+│   │   ├── pages/         # Page components
+│   │   │   ├── Dashboard.jsx
+│   │   │   ├── Classes.jsx
+│   │   │   ├── Schedule.jsx
+│   │   │   └── Homework.jsx
+│   │   ├── services/      # API services
+│   │   │   └── api.js
+│   │   ├── App.jsx
+│   │   └── main.jsx
+│   ├── package.json
+│   ├── tailwind.config.js
+│   └── vite.config.js
+└── README.md
+```
+
+## Getting Started
+
+### Prerequisites
+- Python 3.8+
+- Node.js 16+
+- npm or yarn
+
+### Backend Setup
+
+1. Navigate to the backend directory:
+```bash
+cd backend
+```
+
+2. Install Python dependencies:
+```bash
+pip install -r requirements.txt
+```
+
+3. Start the development server:
+```bash
+python run.py
+```
+
+The API will be available at `http://localhost:8000`
+- API documentation: `http://localhost:8000/docs`
+- Health check: `http://localhost:8000/health`
+
+### Frontend Setup
+
+1. Navigate to the frontend directory:
+```bash
+cd frontend
+```
+
+2. Install dependencies:
+```bash
+npm install
+```
+
+3. Start the development server:
+```bash
+npm run dev
+```
+
+The app will be available at `http://localhost:3000`
+
+## API Endpoints
+
+### Classes
+- `GET /api/classes/` - List all classes
+- `POST /api/classes/` - Create a new class
+- `GET /api/classes/{id}` - Get class by ID
+- `PUT /api/classes/{id}` - Update class
+- `DELETE /api/classes/{id}` - Delete class
+
+### Schedules
+- `GET /api/schedules/` - List all schedules
+- `POST /api/schedules/` - Create a new schedule
+- `GET /api/schedules/active/{year}` - Get active schedule for year
+- `GET /api/schedules/{id}/slots` - Get schedule slots
+- `POST /api/schedules/{id}/slots` - Create schedule slot
+- `PUT /api/schedules/{id}/slots/{slot_id}` - Update schedule slot
+
+### Homework
+- `GET /api/homework/` - List homework (with filters)
+- `POST /api/homework/` - Create homework
+- `GET /api/homework/due-today` - Get homework due today
+- `GET /api/homework/overdue` - Get overdue homework
+- `PUT /api/homework/{id}/complete` - Mark as completed
+- `PUT /api/homework/{id}/reopen` - Reopen homework
+
+### Dashboard
+- `GET /api/dashboard/summary` - Get dashboard statistics
+
+## Features in Detail
+
+### Schedule Management
+- **5-Day Schedule**: Monday through Friday
+- **6 Periods per Day**: Customizable time slots
+- **Interactive Grid**: Click any slot to assign a class
+- **Default Times**: 
+  - Period 1: 08:00 - 08:50
+  - Period 2: 09:00 - 09:50
+  - Period 3: 10:10 - 11:00 (10-min break)
+  - Period 4: 11:10 - 12:00
+  - Period 5: 12:30 - 13:20 (30-min lunch break)
+  - Period 6: 13:30 - 14:20 (Reading time by default)
+
+### Homework Management
+- **Priority System**: Visual priority indicators (Low/Medium/High)
+- **Status Tracking**: Pending → In Progress → Completed
+- **Smart Filtering**: Filter by status, due date, and class
+- **Due Date Alerts**: Visual indicators for overdue and due today
+- **Class Integration**: Automatically linked to class colors and info
+
+### Dashboard Analytics
+- **Real-time Stats**: Live updates of homework and class counts
+- **Quick Overview**: Pending, due today, overdue, and completed counts
+- **Visual Indicators**: Color-coded stats for quick assessment
+
+## Future Enhancements
+
+- 🗓️ **Google Calendar Integration**: Sync homework with Google Calendar
+- 📧 **Email Notifications**: Automated reminders for due assignments
+- 👥 **Multi-user Support**: Student and teacher accounts
+- 📱 **PWA Support**: Offline functionality and app installation
+- 🔔 **Push Notifications**: Browser notifications for deadlines
+- 📈 **Analytics Dashboard**: Progress tracking and performance metrics
+- 🎨 **Themes**: Dark mode and custom color themes
+- 📤 **Export Features**: PDF reports and calendar exports
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Screenshots
+
+### Dashboard
+Overview of classes and homework with real-time statistics.
+
+### Class Management
+Manage your school classes with teacher information and color coding.
+
+### Schedule View
+Interactive weekly schedule grid for easy class assignment.
+
+### Homework Tracking
+Comprehensive homework management with filtering and status tracking.
+
+### Mobile Responsive
+Fully responsive design that works seamlessly on all devices.
