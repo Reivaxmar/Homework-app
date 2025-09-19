@@ -1,7 +1,9 @@
 # Dependencies
 node_modules/
 backend/__pycache__/
+backend/**/__pycache__/
 backend/*.pyc
+backend/**/*.pyc
 backend/.env
 
 # Database

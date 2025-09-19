@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .database import engine, Base
-from .routes import classes, schedule, homework
+from .routes import classes, schedule, homework, calendar
 
 # Create database tables
 Base.metadata.create_all(bind=engine)
@@ -25,6 +25,7 @@ app.add_middleware(
 app.include_router(classes.router)
 app.include_router(schedule.router)
 app.include_router(homework.router)
+app.include_router(calendar.router)
 
 @app.get("/")
 def root():
