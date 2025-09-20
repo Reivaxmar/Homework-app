@@ -57,7 +57,7 @@ export const AuthProvider = ({ children }) => {
       } : null
 
       // Send auth data to backend
-      const response = await api.post('/api/auth/google/callback', googleTokens, {
+      const response = await api.post('/api/auth/google/callback', googleTokens || {}, {
         params: {
           supabase_user_id: session.user.id
         }
@@ -67,12 +67,24 @@ export const AuthProvider = ({ children }) => {
       setUser(userData)
 
       // Sync Google Calendar if we have Google tokens
-      if (googleTokens) {
-        await syncGoogleCalendar()
+      if (googleTokens?.access_token) {
+        try {
+          await syncGoogleCalendar()
+        } catch (calendarError) {
+          console.warn('Calendar sync failed, but user is still authenticated:', calendarError)
+        }
       }
       
     } catch (error) {
       console.error('Failed to handle auth session:', error)
+      // Don't throw here - allow user to be logged in even if backend fails
+      // Set basic user info from Supabase session
+      setUser({
+        id: session.user.id,
+        email: session.user.email,
+        full_name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || 'User',
+        avatar_url: session.user.user_metadata?.avatar_url || session.user.user_metadata?.picture
+      })
     } finally {
       setLoading(false)
     }
