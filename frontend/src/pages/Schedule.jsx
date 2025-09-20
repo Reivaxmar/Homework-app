@@ -49,7 +49,13 @@ function Schedule() {
         setSchedule(scheduleRes.data)
         
         const slotsRes = await schedulesAPI.getSlots(scheduleRes.data.id)
-        setSlots(slotsRes.data)
+        
+        // If no slots exist for this schedule, create them
+        if (slotsRes.data.length === 0) {
+          await createSlotsForExistingSchedule(scheduleRes.data)
+        } else {
+          setSlots(slotsRes.data)
+        }
       } catch (scheduleError) {
         // No active schedule exists, create one
         await createDefaultSchedule()
@@ -59,6 +65,38 @@ function Schedule() {
       console.error('Error fetching data:', error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const createSlotsForExistingSchedule = async (schedule) => {
+    try {
+      // Create default empty slots
+      const defaultSlots = []
+      DAYS.forEach(day => {
+        DEFAULT_TIMES.forEach((time, index) => {
+          defaultSlots.push({
+            day,
+            slot_number: index + 1,
+            start_time: time.start,
+            end_time: time.end,
+            slot_type: index === 5 ? 'READING' : 'CLASS', // Last slot is reading time
+            schedule_id: schedule.id
+          })
+        })
+      })
+      
+      // Create all slots
+      const createdSlots = []
+      for (const slotData of defaultSlots) {
+        const slotRes = await schedulesAPI.createSlot(schedule.id, slotData)
+        createdSlots.push(slotRes.data)
+      }
+      
+      setSlots(createdSlots)
+      toast.success('Schedule slots created successfully')
+    } catch (error) {
+      toast.error('Failed to create schedule slots')
+      console.error('Error creating schedule slots:', error)
     }
   }
 
