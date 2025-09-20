@@ -4,6 +4,13 @@ A comprehensive web application for managing school schedules and homework assig
 
 ## Features
 
+### 🔐 Authentication & Security
+- **Supabase Authentication** - Secure user management with Supabase
+- **Google OAuth Integration** - Sign in with your Google account
+- **Google Calendar Sync** - Automatically sync homework with Google Calendar
+- **JWT Token Management** - Secure API access with JSON Web Tokens
+- **Profile Management** - Update user profile and preferences
+
 ### 📚 Class Management
 - Create and manage school classes with teacher information
 - Color-coded classes for easy identification
@@ -44,6 +51,8 @@ A comprehensive web application for managing school schedules and homework assig
 - **SQLite** - Lightweight database
 - **Pydantic** - Data validation
 - **Uvicorn** - ASGI server
+- **Supabase** - Authentication backend
+- **Google APIs** - Calendar and OAuth integration
 
 ### Frontend
 - **React 18** - UI framework
@@ -54,6 +63,7 @@ A comprehensive web application for managing school schedules and homework assig
 - **React Hot Toast** - Notifications
 - **Lucide React** - Icon library
 - **Vite** - Build tool
+- **Supabase JS** - Authentication and real-time features
 
 ## Project Structure
 
@@ -99,6 +109,18 @@ homework-app/
 - Python 3.8+
 - Node.js 16+
 - npm or yarn
+- Supabase account (https://supabase.com)
+- Google Cloud Console project (for OAuth and Calendar API)
+
+### Authentication Setup
+
+⚠️ **Important**: Before running the application, you need to set up authentication. See the detailed [Authentication Setup Guide](docs/AUTHENTICATION_SETUP.md) for complete instructions.
+
+Quick setup:
+1. Create a Supabase project
+2. Set up Google OAuth in Google Cloud Console
+3. Configure environment variables (see `.env.example` files)
+4. Enable Google provider in Supabase
 
 ### Backend Setup
 
@@ -107,12 +129,18 @@ homework-app/
 cd backend
 ```
 
-2. Install Python dependencies:
+2. Create and configure environment variables:
+```bash
+cp .env.example .env
+# Edit .env with your Supabase and Google OAuth credentials
+```
+
+3. Install Python dependencies:
 ```bash
 pip install -r requirements.txt
 ```
 
-3. Start the development server:
+4. Start the development server:
 ```bash
 python run.py
 ```
@@ -128,12 +156,18 @@ The API will be available at `http://localhost:8000`
 cd frontend
 ```
 
-2. Install dependencies:
+2. Create and configure environment variables:
+```bash
+cp .env.example .env
+# Edit .env with your Supabase credentials
+```
+
+3. Install dependencies:
 ```bash
 npm install
 ```
 
-3. Start the development server:
+4. Start the development server:
 ```bash
 npm run dev
 ```
@@ -141,6 +175,16 @@ npm run dev
 The app will be available at `http://localhost:3000`
 
 ## API Endpoints
+
+### Authentication
+- `POST /api/auth/login` - Simple login (legacy)
+- `POST /api/auth/google/callback` - Handle Google OAuth callback
+- `GET /api/auth/me` - Get current user information
+- `PUT /api/auth/me` - Update current user information
+
+### Calendar Integration
+- `POST /api/calendar/sync` - Sync all homework with Google Calendar
+- `POST /api/calendar/sync/{homework_id}` - Sync specific homework to calendar
 
 ### Classes
 - `GET /api/classes/` - List all classes
@@ -196,7 +240,6 @@ The app will be available at `http://localhost:3000`
 
 ## Future Enhancements
 
-- 🗓️ **Google Calendar Integration**: Sync homework with Google Calendar
 - 📧 **Email Notifications**: Automated reminders for due assignments
 - 👥 **Multi-user Support**: Student and teacher accounts
 - 📱 **PWA Support**: Offline functionality and app installation
@@ -204,6 +247,8 @@ The app will be available at `http://localhost:3000`
 - 📈 **Analytics Dashboard**: Progress tracking and performance metrics
 - 🎨 **Themes**: Dark mode and custom color themes
 - 📤 **Export Features**: PDF reports and calendar exports
+- 🔄 **Real-time Sync**: Live updates across devices
+- 📊 **Advanced Calendar Views**: Month/week views and recurring events
 
 ## Contributing
 
