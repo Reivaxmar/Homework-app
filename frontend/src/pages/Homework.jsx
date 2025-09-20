@@ -73,7 +73,8 @@ function Homework() {
     setEditingHomework(homeworkItem)
     reset({
       ...homeworkItem,
-      due_date: format(parseISO(homeworkItem.due_date), 'yyyy-MM-dd')
+      due_date: format(parseISO(homeworkItem.due_date), 'yyyy-MM-dd'),
+      due_time: homeworkItem.due_time || '23:59'
     })
     setShowModal(true)
   }
@@ -115,6 +116,7 @@ function Homework() {
       description: '',
       class_id: '',
       due_date: '',
+      due_time: '23:59',
       priority: 'MEDIUM'
     })
   }
@@ -125,6 +127,7 @@ function Homework() {
       description: '',
       class_id: '',
       due_date: format(new Date(), 'yyyy-MM-dd'),
+      due_time: '23:59',
       priority: 'MEDIUM'
     })
     setShowModal(true)
@@ -295,7 +298,7 @@ function Homework() {
                               <span>{classInfo.name}</span>
                             </div>
                           )}
-                          <div>Due: {format(dueDate, 'MMM d, yyyy')}</div>
+                          <div>Due: {format(dueDate, 'MMM d, yyyy')} at {homeworkItem.due_time || '23:59'}</div>
                           {getStatusBadge(homeworkItem)}
                         </div>
                       </div>
@@ -389,6 +392,18 @@ function Homework() {
                 {errors.due_date && (
                   <p className="text-red-600 text-sm mt-1">{errors.due_date.message}</p>
                 )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Due Time
+                </label>
+                <input
+                  type="time"
+                  {...register('due_time')}
+                  className="input"
+                  defaultValue="23:59"
+                />
               </div>
 
               <div>

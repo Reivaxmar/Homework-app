@@ -1,6 +1,6 @@
-from sqlalchemy import Column, Integer, String, Text, Boolean, DateTime, ForeignKey, Date, Enum
+from sqlalchemy import Column, Integer, String, Text, Boolean, DateTime, ForeignKey, Date, Time, Enum
 from sqlalchemy.orm import relationship
-from datetime import datetime, date
+from datetime import datetime, date, time
 from enum import Enum as PyEnum
 from .database import Base
 
@@ -24,6 +24,7 @@ class Homework(Base):
     description = Column(Text, nullable=True)
     assigned_date = Column(Date, nullable=False, default=date.today)
     due_date = Column(Date, nullable=False)
+    due_time = Column(Time, nullable=False, default=time(23, 59))  # Default to 23:59
     
     priority = Column(Enum(Priority), default=Priority.MEDIUM)
     status = Column(Enum(Status), default=Status.PENDING)

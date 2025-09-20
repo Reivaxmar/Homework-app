@@ -79,7 +79,7 @@ function Dashboard() {
                 <div className="flex-1">
                   <h4 className="font-medium text-gray-900">{item.title}</h4>
                   <p className="text-sm text-gray-600">
-                    Due: {format(new Date(item.due_date), 'MMM d, yyyy')}
+                    Due: {format(new Date(item.due_date), 'MMM d, yyyy')} at {item.due_time || '23:59'}
                   </p>
                 </div>
                 <div className={`px-2 py-1 rounded-full text-xs font-medium ${
