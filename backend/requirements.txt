@@ -10,5 +10,5 @@ google-auth-oauthlib==1.1.0
 pydantic==2.5.0
 python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
-httpx==0.26.0
+httpx==0.25.0
 supabase==2.3.4
