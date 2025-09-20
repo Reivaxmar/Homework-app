@@ -14,14 +14,14 @@ const DAY_NAMES = {
 }
 
 const DEFAULT_TIMES = [
-  { start: '08:00', end: '08:55' },
-  { start: '08:55', end: '09:50' },
-  { start: '09:50', end: '10:45' },
-  { start: '10:45', end: '11:15' },
-  { start: '11:15', end: '11:45' },
-  { start: '11:45', end: '12:40' },
-  { start: '12:40', end: '13:35' },
-  { start: '13:35', end: '14:30' }
+  { start: '08:00', end: '08:55' },   // Period 1
+  { start: '08:55', end: '09:50' },   // Period 2  
+  { start: '09:50', end: '10:45' },   // Period 3
+  { start: '10:45', end: '11:15' },   // Reading Time
+  { start: '11:15', end: '11:45' },   // Recess Time
+  { start: '11:45', end: '12:40' },   // Period 4
+  { start: '12:40', end: '13:35' },   // Period 5
+  { start: '13:35', end: '14:30' }    // Period 6
 ]
 
 function Schedule() {
@@ -31,6 +31,14 @@ function Schedule() {
   const [loading, setLoading] = useState(true)
   const [editingSlot, setEditingSlot] = useState(null)
   const [isCreating, setIsCreating] = useState(false)
+
+  const getPeriodLabel = (index) => {
+    if (index === 3) return 'Reading Time'
+    if (index === 4) return 'Recess Time'
+    if (index < 3) return `Period ${index + 1}`
+    // For periods after recess (index 5, 6, 7), they become periods 4, 5, 6
+    return `Period ${index - 1}`
+  }
 
   useEffect(() => {
     fetchData()
@@ -85,8 +93,8 @@ function Schedule() {
       DAYS.forEach(day => {
         DEFAULT_TIMES.forEach((time, index) => {
           let slotType = 'CLASS';
-          if (index === 3) slotType = 'READING'; // Period 4 is reading time
-          else if (index === 4) slotType = 'FREE'; // Period 5 is free time
+          if (index === 3) slotType = 'READING'; // Reading time
+          else if (index === 4) slotType = 'RECESS'; // Recess time (was FREE)
           
           defaultSlots.push({
             day,
@@ -138,8 +146,8 @@ function Schedule() {
       DAYS.forEach(day => {
         DEFAULT_TIMES.forEach((time, index) => {
           let slotType = 'CLASS';
-          if (index === 3) slotType = 'READING'; // Period 4 is reading time
-          else if (index === 4) slotType = 'FREE'; // Period 5 is free time
+          if (index === 3) slotType = 'READING'; // Reading time
+          else if (index === 4) slotType = 'RECESS'; // Recess time (was FREE)
           
           defaultSlots.push({
             day,
@@ -217,7 +225,7 @@ function Schedule() {
           >
             <option value="">-- Select Class --</option>
             {slot.slot_type === 'READING' && <option value="">Reading Time</option>}
-            {slot.slot_type === 'FREE' && <option value="">Free Time</option>}
+            {slot.slot_type === 'RECESS' && <option value="">Recess Time</option>}
             {classes.map(cls => (
               <option key={cls.id} value={cls.id}>{cls.name}</option>
             ))}
@@ -247,8 +255,8 @@ function Schedule() {
           </div>
         ) : slot.slot_type === 'READING' ? (
           <div className="text-xs text-gray-600 font-medium">📚 Reading Time</div>
-        ) : slot.slot_type === 'FREE' ? (
-          <div className="text-xs text-gray-600 font-medium">🕐 Free Time</div>
+        ) : slot.slot_type === 'RECESS' ? (
+          <div className="text-xs text-gray-600 font-medium">🏃 Recess Time</div>
         ) : (
           <div className="text-xs text-gray-400">Click to assign</div>
         )}
@@ -299,7 +307,7 @@ function Schedule() {
                   <tr key={period}>
                     <td className="px-4 py-2 bg-gray-50 border-r border-gray-200">
                       <div className="text-sm font-medium text-gray-900">
-                        Period {period + 1}
+                        {getPeriodLabel(period)}
                       </div>
                       <div className="text-xs text-gray-600">
                         {time.start} - {time.end}
@@ -335,9 +343,9 @@ function Schedule() {
         <h3 className="text-sm font-medium text-gray-900 mb-2">Instructions:</h3>
         <ul className="text-sm text-gray-600 space-y-1">
           <li>• Click on any slot to assign a class</li>
-          <li>• Period 4 (10:45-11:15) is reserved for reading time</li>
-          <li>• Period 5 (11:15-11:45) is reserved for free time</li>
-          <li>• Schedule has 8 periods from 08:00 to 14:30</li>
+          <li>• Reading Time (10:45-11:15) is reserved for reading activities</li>
+          <li>• Recess Time (11:15-11:45) is reserved for break/play time</li>
+          <li>• Schedule has 6 class periods: 1-3, then Reading/Recess, then 4-6</li>
         </ul>
       </div>
     </div>

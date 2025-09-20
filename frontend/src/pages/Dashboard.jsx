@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
-import { BookOpen, CheckSquare, Clock, AlertTriangle, Calendar } from 'lucide-react'
+import { BookOpen, CheckSquare, Clock, AlertTriangle, Calendar, Trash2 } from 'lucide-react'
+import toast from 'react-hot-toast'
 import { dashboardAPI, homeworkAPI } from '../services/api'
 import { format } from 'date-fns'
 
@@ -37,6 +38,28 @@ function Dashboard() {
       console.error('Error fetching dashboard data:', error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleClearAllData = async () => {
+    const confirmed = window.confirm(
+      'Are you sure you want to remove ALL data? This will permanently delete:\n\n' +
+      '• All classes\n' +
+      '• All homework assignments\n' +
+      '• All schedules\n\n' +
+      'This action cannot be undone!'
+    )
+    
+    if (confirmed) {
+      try {
+        await dashboardAPI.clearAllData()
+        toast.success('All data has been successfully cleared')
+        // Refresh the dashboard data
+        fetchDashboardData()
+      } catch (error) {
+        toast.error('Failed to clear data')
+        console.error('Error clearing data:', error)
+      }
     }
   }
 
@@ -112,9 +135,18 @@ function Dashboard() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-gray-600">Overview of your classes and homework</p>
+      <div className="flex justify-between items-start">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+          <p className="text-gray-600">Overview of your classes and homework</p>
+        </div>
+        <button
+          onClick={handleClearAllData}
+          className="inline-flex items-center px-4 py-2 border border-red-300 text-sm font-medium rounded-md text-red-700 bg-red-50 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
+        >
+          <Trash2 className="h-4 w-4 mr-2" />
+          Remove All Data
+        </button>
       </div>
 
       {/* Stats Grid */}
