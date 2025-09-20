@@ -14,7 +14,7 @@ class WeekDay(str, Enum):
 class SlotType(str, Enum):
     CLASS = "CLASS"
     READING = "READING"
-    FREE = "FREE"
+    RECESS = "RECESS"
 
 class Priority(str, Enum):
     LOW = "LOW"
