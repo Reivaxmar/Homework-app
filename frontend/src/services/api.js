@@ -42,6 +42,7 @@ export const homeworkAPI = {
   getDueToday: () => api.get('/api/homework/due-today'),
   getOverdue: () => api.get('/api/homework/overdue'),
   getUpcoming: (days = 7) => api.get(`/api/homework/upcoming?days=${days}`),
+  getDueNextWeek: () => api.get('/api/homework/upcoming?days=7'),
   create: (data) => api.post('/api/homework/', data),
   update: (id, data) => api.put(`/api/homework/${id}`, data),
   complete: (id) => api.put(`/api/homework/${id}/complete`),
