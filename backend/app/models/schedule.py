@@ -20,6 +20,7 @@ class Schedule(Base):
     __tablename__ = "schedules"
     
     id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     name = Column(String(100), nullable=False, default="Default Schedule")
     year = Column(String(20), nullable=False)
     is_active = Column(Boolean, default=True)
@@ -28,6 +29,7 @@ class Schedule(Base):
     
     # Relationships
     slots = relationship("ScheduleSlot", back_populates="schedule")
+    user = relationship("User", back_populates="schedules")
     
     def __repr__(self):
         return f"<Schedule(name='{self.name}', year='{self.year}')>"

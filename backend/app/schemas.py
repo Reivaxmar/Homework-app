@@ -3,6 +3,31 @@ from datetime import datetime, date, time
 from enum import Enum
 from typing import Optional, List
 
+# User schemas
+class UserBase(BaseModel):
+    email: str
+    full_name: str
+    avatar_url: Optional[str] = None
+
+class UserCreate(UserBase):
+    supabase_user_id: str
+
+class UserUpdate(BaseModel):
+    full_name: Optional[str] = None
+    avatar_url: Optional[str] = None
+    google_access_token: Optional[str] = None
+    google_refresh_token: Optional[str] = None
+    google_token_expiry: Optional[datetime] = None
+
+class User(UserBase):
+    id: int
+    supabase_user_id: str
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
 # Enums
 class WeekDay(str, Enum):
     MONDAY = "MONDAY"
@@ -46,8 +71,10 @@ class ClassUpdate(BaseModel):
 
 class Class(ClassBase):
     id: int
+    user_id: int
     created_at: datetime
     updated_at: datetime
+    user: Optional[User] = None
 
     class Config:
         from_attributes = True
@@ -62,9 +89,11 @@ class ScheduleCreate(ScheduleBase):
 
 class Schedule(ScheduleBase):
     id: int
+    user_id: int
     is_active: bool
     created_at: datetime
     updated_at: datetime
+    user: Optional[User] = None
 
     class Config:
         from_attributes = True
@@ -119,6 +148,7 @@ class HomeworkUpdate(BaseModel):
 class Homework(HomeworkBase):
     id: int
     class_id: int
+    user_id: int
     assigned_date: date
     status: Status
     google_calendar_event_id: Optional[str] = None
@@ -126,6 +156,7 @@ class Homework(HomeworkBase):
     updated_at: datetime
     completed_at: Optional[datetime] = None
     class_: Optional[Class] = None
+    user: Optional[User] = None
 
     class Config:
         from_attributes = True

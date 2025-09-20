@@ -4,7 +4,7 @@ from fastapi.staticfiles import StaticFiles
 import os
 
 from .models.database import engine, Base
-from .routers import classes, schedules, homework, dashboard
+from .routers import classes, schedules, homework, dashboard, auth
 
 # Create database tables
 Base.metadata.create_all(bind=engine)
@@ -25,6 +25,7 @@ app.add_middleware(
 )
 
 # Include routers
+app.include_router(auth.router, prefix="/api")
 app.include_router(classes.router, prefix="/api")
 app.include_router(schedules.router, prefix="/api")
 app.include_router(homework.router, prefix="/api")
