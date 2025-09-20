@@ -20,12 +20,14 @@ class GoogleCalendarService:
         if not self.user.google_access_token:
             raise ValueError("User has no Google access token")
             
+        from ..config import settings
+            
         credentials = Credentials(
             token=self.user.google_access_token,
             refresh_token=self.user.google_refresh_token,
             token_uri="https://oauth2.googleapis.com/token",
-            client_id=None,  # Will be set from config
-            client_secret=None,  # Will be set from config
+            client_id=settings.google_client_id,
+            client_secret=settings.google_client_secret,
         )
         
         self.service = build('calendar', 'v3', credentials=credentials)

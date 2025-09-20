@@ -88,40 +88,43 @@ async def google_auth_callback(
 ):
     """Handle Google OAuth callback and create/update user"""
     try:
-        # Get user info from Google
-        response = requests.get(
-            "https://www.googleapis.com/oauth2/v1/userinfo",
-            headers={"Authorization": f"Bearer {token_data.access_token}"}
-        )
-        
-        if response.status_code != 200:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Failed to get user info from Google"
+        # Get user info from Google if we have access token
+        google_user = {}
+        if token_data.access_token:
+            response = requests.get(
+                "https://www.googleapis.com/oauth2/v1/userinfo",
+                headers={"Authorization": f"Bearer {token_data.access_token}"}
             )
+            
+            if response.status_code == 200:
+                google_user = response.json()
         
-        google_user = response.json()
-        
-        # Check if user exists
+        # Check if user exists by supabase_user_id
         user = db.query(User).filter(
             User.supabase_user_id == supabase_user_id
         ).first()
         
         if user:
             # Update existing user
-            user.email = google_user.get("email")
-            user.full_name = google_user.get("name", user.full_name)
-            user.avatar_url = google_user.get("picture")
-            user.google_access_token = token_data.access_token
-            user.google_refresh_token = token_data.refresh_token
-            if token_data.expires_in:
-                from datetime import datetime, timedelta
-                user.google_token_expiry = datetime.utcnow() + timedelta(seconds=token_data.expires_in)
+            if google_user.get("email"):
+                user.email = google_user.get("email")
+            if google_user.get("name"):
+                user.full_name = google_user.get("name")
+            if google_user.get("picture"):
+                user.avatar_url = google_user.get("picture")
+            
+            # Update Google tokens if provided
+            if token_data.access_token:
+                user.google_access_token = token_data.access_token
+                user.google_refresh_token = token_data.refresh_token
+                if token_data.expires_in:
+                    from datetime import datetime, timedelta
+                    user.google_token_expiry = datetime.utcnow() + timedelta(seconds=token_data.expires_in)
         else:
             # Create new user
             user = User(
-                email=google_user.get("email"),
-                full_name=google_user.get("name", ""),
+                email=google_user.get("email", f"{supabase_user_id}@example.com"),
+                full_name=google_user.get("name", "User"),
                 avatar_url=google_user.get("picture"),
                 supabase_user_id=supabase_user_id,
                 google_access_token=token_data.access_token,
@@ -136,7 +139,7 @@ async def google_auth_callback(
         db.commit()
         db.refresh(user)
         
-        # Create access token
+        # Create access token for our app
         access_token = create_access_token(data={"sub": str(user.id)})
         
         return LoginResponse(

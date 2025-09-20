@@ -4,6 +4,7 @@ import { Toaster } from 'react-hot-toast'
 import { AuthProvider } from './contexts/AuthContext'
 import Layout from './components/Layout'
 import Login from './components/Login'
+import AuthCallback from './components/AuthCallback'
 import ProtectedRoute from './components/ProtectedRoute'
 import Dashboard from './pages/Dashboard'
 import Classes from './pages/Classes'
@@ -17,6 +18,7 @@ function App() {
         <div className="min-h-screen bg-gray-50">
           <Routes>
             <Route path="/login" element={<Login />} />
+            <Route path="/auth/callback" element={<AuthCallback />} />
             <Route path="/*" element={
               <ProtectedRoute>
                 <Layout>
