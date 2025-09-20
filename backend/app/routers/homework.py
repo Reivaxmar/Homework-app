@@ -55,10 +55,22 @@ def get_homework_due_today(db: Session = Depends(get_db)):
 @router.get("/overdue", response_model=List[schemas.Homework])
 def get_overdue_homework(db: Session = Depends(get_db)):
     """Get overdue homework"""
-    today = date.today()
+    from datetime import datetime, time
+    now = datetime.now()
+    today = now.date()
+    current_time = now.time()
+    
     homework = db.query(Homework).filter(
         and_(
-            Homework.due_date < today,
+            or_(
+                # Tasks due before today are overdue
+                Homework.due_date < today,
+                # Tasks due today but past their due time are overdue
+                and_(
+                    Homework.due_date == today,
+                    Homework.due_time < current_time
+                )
+            ),
             Homework.status != Status.COMPLETED
         )
     ).all()
