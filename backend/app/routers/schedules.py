@@ -4,7 +4,9 @@ from typing import List
 
 from ..models.database import get_db
 from ..models.schedule import Schedule, ScheduleSlot
+from ..models.user import User
 from .. import schemas
+from ..auth import get_current_user
 
 router = APIRouter(prefix="/schedules", tags=["schedules"])
 
@@ -34,12 +36,13 @@ def get_active_schedule(year: str, db: Session = Depends(get_db)):
     return schedule
 
 @router.post("/", response_model=schemas.Schedule, status_code=status.HTTP_201_CREATED)
-def create_schedule(schedule_data: schemas.ScheduleCreate, db: Session = Depends(get_db)):
+def create_schedule(schedule_data: schemas.ScheduleCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     """Create a new schedule"""
     # Deactivate other schedules for the same year
     db.query(Schedule).filter(Schedule.year == schedule_data.year).update({"is_active": False})
-    
-    db_schedule = Schedule(**schedule_data.dict(), is_active=True)
+
+    # Add user_id from the authenticated user
+    db_schedule = Schedule(**schedule_data.dict(), user_id=current_user.id, is_active=True)
     db.add(db_schedule)
     db.commit()
     db.refresh(db_schedule)
