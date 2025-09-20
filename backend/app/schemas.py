@@ -72,7 +72,7 @@ class Schedule(ScheduleBase):
 # Schedule Slot schemas
 class ScheduleSlotBase(BaseModel):
     day: WeekDay
-    slot_number: int = Field(..., ge=1, le=6)
+    slot_number: int = Field(..., ge=1, le=8)
     start_time: time
     end_time: time
     slot_type: SlotType = SlotType.CLASS
@@ -101,6 +101,7 @@ class HomeworkBase(BaseModel):
     title: str = Field(..., max_length=200)
     description: Optional[str] = None
     due_date: date
+    due_time: time = time(23, 59)  # Default to 23:59
     priority: Priority = Priority.MEDIUM
 
 class HomeworkCreate(HomeworkBase):
@@ -111,6 +112,7 @@ class HomeworkUpdate(BaseModel):
     title: Optional[str] = Field(None, max_length=200)
     description: Optional[str] = None
     due_date: Optional[date] = None
+    due_time: Optional[time] = None
     priority: Optional[Priority] = None
     status: Optional[Status] = None
 

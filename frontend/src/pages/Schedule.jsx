@@ -14,12 +14,14 @@ const DAY_NAMES = {
 }
 
 const DEFAULT_TIMES = [
-  { start: '08:00', end: '08:50' },
-  { start: '09:00', end: '09:50' },
-  { start: '10:10', end: '11:00' },
-  { start: '11:10', end: '12:00' },
-  { start: '12:30', end: '13:20' },
-  { start: '13:30', end: '14:20' }
+  { start: '08:00', end: '08:55' },
+  { start: '08:55', end: '09:50' },
+  { start: '09:50', end: '10:45' },
+  { start: '10:45', end: '11:15' },
+  { start: '11:15', end: '11:45' },
+  { start: '11:45', end: '12:40' },
+  { start: '12:40', end: '13:35' },
+  { start: '13:35', end: '14:30' }
 ]
 
 function Schedule() {
@@ -42,10 +44,18 @@ function Schedule() {
       
       setClasses(classesRes.data)
       
-      // Try to get active schedule for current year
-      const currentYear = new Date().getFullYear()
+      // Try to get active schedule for current academic year
+      const now = new Date();
+      const currentYear = now.getFullYear();
+      const currentMonth = now.getMonth() + 1; // getMonth() returns 0-11, so add 1
+      
+      // If before July (month 7), use previous year as start of academic year
+      // If July or later, use current year as start of academic year
+      const academicStartYear = currentMonth < 7 ? currentYear - 1 : currentYear;
+      const academicYearString = `${academicStartYear}-${academicStartYear + 1}`;
+      
       try {
-        const scheduleRes = await schedulesAPI.getActive(`${currentYear}-${currentYear + 1}`)
+        const scheduleRes = await schedulesAPI.getActive(academicYearString)
         setSchedule(scheduleRes.data)
         
         const slotsRes = await schedulesAPI.getSlots(scheduleRes.data.id)
@@ -74,12 +84,16 @@ function Schedule() {
       const defaultSlots = []
       DAYS.forEach(day => {
         DEFAULT_TIMES.forEach((time, index) => {
+          let slotType = 'CLASS';
+          if (index === 3) slotType = 'READING'; // Period 4 is reading time
+          else if (index === 4) slotType = 'FREE'; // Period 5 is free time
+          
           defaultSlots.push({
             day,
             slot_number: index + 1,
             start_time: time.start,
             end_time: time.end,
-            slot_type: index === 5 ? 'READING' : 'CLASS', // Last slot is reading time
+            slot_type: slotType,
             schedule_id: schedule.id
           })
         })
@@ -102,10 +116,18 @@ function Schedule() {
 
   const createDefaultSchedule = async () => {
     try {
-      const currentYear = new Date().getFullYear()
+      const now = new Date();
+      const currentYear = now.getFullYear();
+      const currentMonth = now.getMonth() + 1; // getMonth() returns 0-11, so add 1
+      
+      // If before July (month 7), use previous year as start of academic year
+      // If July or later, use current year as start of academic year
+      const academicStartYear = currentMonth < 7 ? currentYear - 1 : currentYear;
+      const academicYearString = `${academicStartYear}-${academicStartYear + 1}`;
+      
       const scheduleData = {
         name: 'Default Schedule',
-        year: `${currentYear}-${currentYear + 1}`
+        year: academicYearString
       }
       
       const scheduleRes = await schedulesAPI.create(scheduleData)
@@ -115,12 +137,16 @@ function Schedule() {
       const defaultSlots = []
       DAYS.forEach(day => {
         DEFAULT_TIMES.forEach((time, index) => {
+          let slotType = 'CLASS';
+          if (index === 3) slotType = 'READING'; // Period 4 is reading time
+          else if (index === 4) slotType = 'FREE'; // Period 5 is free time
+          
           defaultSlots.push({
             day,
             slot_number: index + 1,
             start_time: time.start,
             end_time: time.end,
-            slot_type: index === 5 ? 'READING' : 'CLASS', // Last slot is reading time
+            slot_type: slotType,
             schedule_id: scheduleRes.data.id
           })
         })
@@ -309,9 +335,9 @@ function Schedule() {
         <h3 className="text-sm font-medium text-gray-900 mb-2">Instructions:</h3>
         <ul className="text-sm text-gray-600 space-y-1">
           <li>• Click on any slot to assign a class</li>
-          <li>• Last period (6th) is reserved for reading time by default</li>
-          <li>• Each slot is 50 minutes with 10-minute breaks</li>
-          <li>• Lunch break is from 12:00-12:30</li>
+          <li>• Period 4 (10:45-11:15) is reserved for reading time</li>
+          <li>• Period 5 (11:15-11:45) is reserved for free time</li>
+          <li>• Schedule has 8 periods from 08:00 to 14:30</li>
         </ul>
       </div>
     </div>

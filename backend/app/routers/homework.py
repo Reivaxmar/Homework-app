@@ -35,8 +35,15 @@ def get_homework(
 
 @router.get("/due-today", response_model=List[schemas.Homework])
 def get_homework_due_today(db: Session = Depends(get_db)):
-    """Get homework due today"""
+    """Get homework due today (considering both date and time)"""
+    from datetime import datetime, time
     today = date.today()
+    now = datetime.now()
+    current_time = now.time()
+    
+    # Get homework due today that is either:
+    # 1. Due today with time later than current time
+    # 2. Due today and it's already past the due time (still show as due today)
     homework = db.query(Homework).filter(
         and_(
             Homework.due_date == today,
