@@ -6,8 +6,12 @@ import {
   Calendar, 
   CheckSquare, 
   Menu, 
-  X 
+  X,
+  User,
+  LogOut 
 } from 'lucide-react'
+import { useAuth } from '../contexts/AuthContext'
+import toast from 'react-hot-toast'
 
 const navigation = [
   { name: 'Dashboard', href: '/', icon: Home },
@@ -18,7 +22,14 @@ const navigation = [
 
 function Layout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [userMenuOpen, setUserMenuOpen] = useState(false)
   const location = useLocation()
+  const { user, logout } = useAuth()
+
+  const handleLogout = () => {
+    logout()
+    toast.success('Logged out successfully')
+  }
 
   return (
     <div className="flex h-screen bg-gray-50">
@@ -52,6 +63,31 @@ function Layout({ children }) {
               </Link>
             ))}
           </nav>
+          {/* Mobile user menu */}
+          <div className="border-t border-gray-200 p-4">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                {user?.avatar_url ? (
+                  <img className="h-8 w-8 rounded-full" src={user.avatar_url} alt="" />
+                ) : (
+                  <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center">
+                    <User className="h-5 w-5 text-white" />
+                  </div>
+                )}
+              </div>
+              <div className="ml-3">
+                <div className="text-base font-medium text-gray-900">{user?.full_name}</div>
+                <div className="text-sm font-medium text-gray-500">{user?.email}</div>
+              </div>
+            </div>
+            <button
+              onClick={handleLogout}
+              className="mt-3 w-full flex items-center px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md"
+            >
+              <LogOut className="mr-3 h-4 w-4" />
+              Sign out
+            </button>
+          </div>
         </div>
       </div>
 
@@ -76,6 +112,32 @@ function Layout({ children }) {
             </Link>
           ))}
         </nav>
+        
+        {/* Desktop user menu */}
+        <div className="border-t border-gray-200 p-4">
+          <div className="flex items-center">
+            <div className="flex-shrink-0">
+              {user?.avatar_url ? (
+                <img className="h-8 w-8 rounded-full" src={user.avatar_url} alt="" />
+              ) : (
+                <div className="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center">
+                  <User className="h-5 w-5 text-white" />
+                </div>
+              )}
+            </div>
+            <div className="ml-3 flex-1">
+              <div className="text-sm font-medium text-gray-900">{user?.full_name}</div>
+              <div className="text-xs text-gray-500">{user?.email}</div>
+            </div>
+          </div>
+          <button
+            onClick={handleLogout}
+            className="mt-3 w-full flex items-center px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md"
+          >
+            <LogOut className="mr-3 h-4 w-4" />
+            Sign out
+          </button>
+        </div>
       </div>
 
       {/* Main content */}

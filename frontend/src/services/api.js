@@ -9,6 +9,14 @@ const api = axios.create({
   },
 })
 
+// Auth API
+export const authAPI = {
+  login: (data) => api.post('/api/auth/login', data),
+  googleCallback: (data, supabaseUserId) => api.post(`/api/auth/google/callback?supabase_user_id=${supabaseUserId}`, data),
+  getCurrentUser: () => api.get('/api/auth/me'),
+  updateProfile: (data) => api.put('/api/auth/me', data),
+}
+
 // Classes API
 export const classesAPI = {
   getAll: () => api.get('/api/classes/'),
