@@ -137,12 +137,25 @@ function Homework() {
     return classes.find(c => c.id === classId)
   }
 
+  const isHomeworkOverdue = (homework) => {
+    if (homework.status === 'COMPLETED') return false
+    
+    const dueDate = parseISO(homework.due_date)
+    const dueTime = homework.due_time || '23:59'
+    
+    // Combine date and time to create a proper datetime for comparison
+    const dueDateTimeString = `${homework.due_date}T${dueTime}`
+    const dueDateTime = parseISO(dueDateTimeString)
+    
+    return isPast(dueDateTime)
+  }
+
   const filteredHomework = homework.filter(item => {
     if (filter === 'all') return true
     if (filter === 'pending') return item.status !== 'COMPLETED'
     if (filter === 'completed') return item.status === 'COMPLETED'
     if (filter === 'due_today') return isToday(parseISO(item.due_date))
-    if (filter === 'overdue') return isPast(parseISO(item.due_date)) && item.status !== 'COMPLETED'
+    if (filter === 'overdue') return isHomeworkOverdue(item)
     return true
   })
 
@@ -157,7 +170,7 @@ function Homework() {
 
   const getStatusBadge = (homework) => {
     const dueDate = parseISO(homework.due_date)
-    const isOverdue = isPast(dueDate) && homework.status !== 'COMPLETED'
+    const isOverdue = isHomeworkOverdue(homework)
     const isDueToday = isToday(dueDate)
     
     if (homework.status === 'COMPLETED') {
