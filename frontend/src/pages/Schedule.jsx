@@ -82,7 +82,8 @@ function Schedule() {
             slot_number: index + 1,
             start_time: time.start,
             end_time: time.end,
-            slot_type: index === 5 ? 'READING' : 'CLASS' // Last slot is reading time
+            slot_type: index === 5 ? 'READING' : 'CLASS', // Last slot is reading time
+            schedule_id: scheduleRes.data.id
           })
         })
       })
