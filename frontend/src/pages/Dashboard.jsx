@@ -13,6 +13,7 @@ function Dashboard() {
   })
   const [dueToday, setDueToday] = useState([])
   const [overdue, setOverdue] = useState([])
+  const [dueNextWeek, setDueNextWeek] = useState([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -21,15 +22,17 @@ function Dashboard() {
 
   const fetchDashboardData = async () => {
     try {
-      const [summaryRes, dueTodayRes, overdueRes] = await Promise.all([
+      const [summaryRes, dueTodayRes, overdueRes, dueNextWeekRes] = await Promise.all([
         dashboardAPI.getSummary(),
         homeworkAPI.getDueToday(),
-        homeworkAPI.getOverdue()
+        homeworkAPI.getOverdue(),
+        homeworkAPI.getDueNextWeek()
       ])
       
       setSummary(summaryRes.data)
       setDueToday(dueTodayRes.data)
       setOverdue(overdueRes.data)
+      setDueNextWeek(dueNextWeekRes.data)
     } catch (error) {
       console.error('Error fetching dashboard data:', error)
     } finally {
@@ -82,6 +85,8 @@ function Dashboard() {
                 <div className={`px-2 py-1 rounded-full text-xs font-medium ${
                   color === 'red' 
                     ? 'bg-red-100 text-red-800' 
+                    : color === 'blue'
+                    ? 'bg-blue-100 text-blue-800'
                     : 'bg-yellow-100 text-yellow-800'
                 }`}>
                   {item.priority}
@@ -147,12 +152,18 @@ function Dashboard() {
       </div>
 
       {/* Homework Lists */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <HomeworkList
           title="Due Today"
           homework={dueToday}
           emptyMessage="No homework due today! 🎉"
           color="yellow"
+        />
+        <HomeworkList
+          title="Due Next Week"
+          homework={dueNextWeek}
+          emptyMessage="No homework due in the next 7 days!"
+          color="blue"
         />
         <HomeworkList
           title="Overdue"
