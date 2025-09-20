@@ -4,7 +4,7 @@ from fastapi.staticfiles import StaticFiles
 import os
 
 from .models.database import engine, Base
-from .routers import classes, schedules, homework, dashboard
+from .routers import classes, schedules, homework, dashboard, auth
 
 # Create database tables
 Base.metadata.create_all(bind=engine)
@@ -18,13 +18,14 @@ app = FastAPI(
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:3001", "http://localhost:5173"],  # React dev servers
+    allow_origins=["http://localhost:3000", "http://localhost:3001", "http://localhost:5173", "*"],  # Allow all origins for development
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 # Include routers
+app.include_router(auth.router, prefix="/api")
 app.include_router(classes.router, prefix="/api")
 app.include_router(schedules.router, prefix="/api")
 app.include_router(homework.router, prefix="/api")

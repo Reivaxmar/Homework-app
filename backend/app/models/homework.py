@@ -19,6 +19,7 @@ class Homework(Base):
     
     id = Column(Integer, primary_key=True, index=True)
     class_id = Column(Integer, ForeignKey("classes.id"), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     
     title = Column(String(200), nullable=False)
     description = Column(Text, nullable=True)
@@ -38,6 +39,7 @@ class Homework(Base):
     
     # Relationships
     class_ = relationship("Class", back_populates="homework")
+    user = relationship("User", back_populates="homework")
     
     def __repr__(self):
         return f"<Homework(title='{self.title}', class='{self.class_.name if self.class_ else 'N/A'}', due='{self.due_date}')>"

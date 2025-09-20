@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Boolean, DateTime
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from .database import Base
@@ -7,6 +7,7 @@ class Class(Base):
     __tablename__ = "classes"
     
     id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     name = Column(String(100), nullable=False)
     teacher = Column(String(100), nullable=False)
     year = Column(String(20), nullable=False)
@@ -18,6 +19,7 @@ class Class(Base):
     # Relationships
     schedule_slots = relationship("ScheduleSlot", back_populates="class_")
     homework = relationship("Homework", back_populates="class_")
+    user = relationship("User", back_populates="classes")
     
     def __repr__(self):
         return f"<Class(name='{self.name}', teacher='{self.teacher}', year='{self.year}')>"
