@@ -53,6 +53,7 @@ export const homeworkAPI = {
 // Dashboard API
 export const dashboardAPI = {
   getSummary: () => api.get('/api/dashboard/summary'),
+  clearAllData: () => api.delete('/api/dashboard/clear-all-data'),
 }
 
 export default api

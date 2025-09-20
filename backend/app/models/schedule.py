@@ -14,7 +14,7 @@ class WeekDay(PyEnum):
 class SlotType(PyEnum):
     CLASS = "CLASS"
     READING = "READING"
-    FREE = "FREE"
+    RECESS = "RECESS"
 
 class Schedule(Base):
     __tablename__ = "schedules"
