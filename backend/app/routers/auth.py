@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/auth", tags=["authentication"])
 
 class GoogleTokenRequest(BaseModel):
-    access_token: str
+    access_token: Optional[str] = None
     refresh_token: Optional[str] = None
     expires_in: Optional[int] = None
 

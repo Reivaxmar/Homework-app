@@ -46,9 +46,6 @@ export const AuthProvider = ({ children }) => {
 
   const handleAuthSession = async (session) => {
     try {
-      // Set Supabase JWT token for API requests
-      api.defaults.headers.common['Authorization'] = `Bearer ${session.access_token}`
-      
       // Get Google tokens if available
       const googleTokens = session.provider_token ? {
         access_token: session.provider_token,
@@ -56,14 +53,18 @@ export const AuthProvider = ({ children }) => {
         expires_in: session.expires_in
       } : null
 
-      // Send auth data to backend
+      // Send auth data to backend to get our backend JWT token
       const response = await api.post('/api/auth/google/callback', googleTokens || {}, {
         params: {
           supabase_user_id: session.user.id
         }
       })
 
-      const { user: userData } = response.data
+      const { user: userData, access_token: backendToken } = response.data
+      
+      // Set the backend JWT token for all future API requests
+      api.defaults.headers.common['Authorization'] = `Bearer ${backendToken}`
+      
       setUser(userData)
 
       // Sync Google Calendar if we have Google tokens
