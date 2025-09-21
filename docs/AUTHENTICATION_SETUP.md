@@ -168,6 +168,23 @@ This dual-token approach allows you to:
 7. Create a homework assignment
 8. Check Google Calendar for automatic sync
 
+### Quick Authentication Test
+
+You can verify your JWT authentication is working correctly by running the test script:
+
+```bash
+cd backend
+python test_auth.py
+```
+
+This script will:
+- Check if the backend server is running
+- Test JWT token generation
+- Verify token validation works
+- Confirm protected endpoints are accessible
+
+If the test passes, your authentication setup is working correctly.
+
 ## Troubleshooting
 
 ### Common Issues
@@ -187,11 +204,17 @@ This dual-token approach allows you to:
    - **Solution**: Generate a proper JWT secret key (see JWT_SECRET_KEY section above)
    - Check Supabase service role key is correct
    - Verify the backend is receiving and using the correct JWT token
+   - **Fixed in recent update**: Frontend now correctly uses backend JWT tokens instead of Supabase JWT tokens
 
 5. **"Could not validate credentials" errors**
    - Ensure you're using the backend JWT token (not Supabase JWT) for API calls
    - Check that JWT_SECRET_KEY matches between token creation and verification
    - Verify token hasn't expired (default: 7 days)
+
+6. **"User can log in but API calls fail"**
+   - This was a common issue that has been fixed
+   - The frontend now properly switches from Supabase JWT to backend JWT after authentication
+   - If you're still experiencing this, try the authentication test script: `python backend/test_auth.py`
 
 ### Debug Mode
 
