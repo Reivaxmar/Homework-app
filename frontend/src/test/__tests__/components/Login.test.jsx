@@ -19,12 +19,11 @@ vi.mock('react-router-dom', () => ({
 }))
 
 // Mock react-hot-toast
-const mockToast = {
-  success: vi.fn(),
-  error: vi.fn(),
-}
 vi.mock('react-hot-toast', () => ({
-  default: mockToast,
+  default: {
+    success: vi.fn(),
+    error: vi.fn(),
+  },
 }))
 
 describe('Login Component', () => {
@@ -103,7 +102,8 @@ describe('Login Component', () => {
     fireEvent.click(signInButton)
 
     await waitFor(() => {
-      expect(mockToast.error).toHaveBeenCalledWith('Failed to sign in with Google. Please try again.')
+      const toast = require('react-hot-toast').default
+      expect(toast.error).toHaveBeenCalledWith('Failed to sign in with Google. Please try again.')
     })
 
     // Button should no longer be disabled after error
@@ -119,7 +119,8 @@ describe('Login Component', () => {
     fireEvent.click(signInButton)
 
     await waitFor(() => {
-      expect(mockToast.success).toHaveBeenCalledWith('Redirecting to Google...')
+      const toast = require('react-hot-toast').default
+      expect(toast.success).toHaveBeenCalledWith('Redirecting to Google...')
     })
   })
 

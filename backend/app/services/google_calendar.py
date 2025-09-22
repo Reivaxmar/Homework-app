@@ -123,6 +123,9 @@ class GoogleCalendarService:
     def delete_homework_event(self, event_id: str) -> bool:
         """Delete Google Calendar event"""
         try:
+            if not event_id:
+                return False
+                
             if not self.service:
                 self._build_service()
             

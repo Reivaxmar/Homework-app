@@ -29,7 +29,7 @@ def test_complete_homework_workflow(client, db):
     }
     
     class_response = client.post("/api/classes/", json=class_data)
-    assert class_response.status_code == 200
+    assert class_response.status_code == 201
     class_info = class_response.json()
     class_id = class_info["id"]
     
@@ -43,7 +43,7 @@ def test_complete_homework_workflow(client, db):
     }
     
     homework_response = client.post("/api/homework/", json=homework_data)
-    assert homework_response.status_code == 200
+    assert homework_response.status_code == 201
     homework_info = homework_response.json()
     homework_id = homework_info["id"]
     
@@ -97,7 +97,7 @@ def test_class_schedule_workflow(client, db):
     }
     
     class_response = client.post("/api/classes/", json=class_data)
-    assert class_response.status_code == 200
+    assert class_response.status_code == 201
     class_info = class_response.json()
     
     # 3. Create a schedule
@@ -167,14 +167,14 @@ def test_user_profile_and_data_workflow(client, db):
         "teacher": "Dr. Brown",
         "year": "2024"
     })
-    assert class_response.status_code == 200
+    assert class_response.status_code == 201
     
     homework_response = client.post("/api/homework/", json={
         "title": "Lab Report",
         "due_date": "2024-03-01",
         "class_id": class_response.json()["id"]
     })
-    assert homework_response.status_code == 200
+    assert homework_response.status_code == 201
     
     # 5. Verify data ownership
     classes_response = client.get("/api/classes/")
@@ -184,7 +184,7 @@ def test_user_profile_and_data_workflow(client, db):
     assert classes[0]["user_id"] == user_id
     
     homework_response = client.get("/api/homework/")
-    assert homework_response.status_code == 200
+    assert homework_response.status_code == 201
     homework_list = homework_response.json()
     assert len(homework_list) == 1
     assert homework_list[0]["user_id"] == user_id
@@ -223,7 +223,7 @@ def test_error_handling_workflow(client, db):
         "teacher": "My Teacher",
         "year": "2024"
     })
-    assert class_response.status_code == 200
+    assert class_response.status_code == 201
     class_id = class_response.json()["id"]
     
     # Try to update with invalid data
