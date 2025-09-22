@@ -12,3 +12,13 @@ python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
 httpx==0.25.0
 supabase==2.3.4
+
+# Testing dependencies
+pytest==8.4.2
+pytest-asyncio==1.2.0
+pytest-cov==7.0.0
+
+# Linting dependencies  
+flake8==6.1.0
+black==23.11.0
+isort==5.12.0
