@@ -51,6 +51,23 @@ class Status(str, Enum):
     IN_PROGRESS = "IN_PROGRESS"
     COMPLETED = "COMPLETED"
 
+class ClassType(str, Enum):
+    MATHS = "MATHS"
+    ENGLISH = "ENGLISH"
+    SCIENCE = "SCIENCE"
+    HISTORY = "HISTORY"
+    GEOGRAPHY = "GEOGRAPHY"
+    ART = "ART"
+    MUSIC = "MUSIC"
+    PHYSICAL_EDUCATION = "PHYSICAL_EDUCATION"
+    COMPUTER_SCIENCE = "COMPUTER_SCIENCE"
+    FOREIGN_LANGUAGE = "FOREIGN_LANGUAGE"
+    LITERATURE = "LITERATURE"
+    CHEMISTRY = "CHEMISTRY"
+    PHYSICS = "PHYSICS"
+    BIOLOGY = "BIOLOGY"
+    OTHER = "OTHER"
+
 # Class schemas
 class ClassBase(BaseModel):
     name: str = Field(..., max_length=100)
@@ -58,6 +75,7 @@ class ClassBase(BaseModel):
     year: str = Field(..., max_length=20)
     half_group: Optional[str] = Field(None, max_length=10)
     color: str = Field("#3B82F6", pattern=r"^#[0-9A-Fa-f]{6}$")
+    class_type: ClassType = Field(..., description="Predefined class type")
 
 class ClassCreate(ClassBase):
     pass
@@ -68,6 +86,7 @@ class ClassUpdate(BaseModel):
     year: Optional[str] = Field(None, max_length=20)
     half_group: Optional[str] = Field(None, max_length=10)
     color: Optional[str] = Field(None, pattern=r"^#[0-9A-Fa-f]{6}$")
+    class_type: Optional[ClassType] = Field(None, description="Predefined class type")
 
 class Class(ClassBase):
     id: int

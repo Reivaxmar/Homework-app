@@ -21,6 +21,7 @@ export const authAPI = {
 export const classesAPI = {
   getAll: () => api.get('/api/classes/'),
   getById: (id) => api.get(`/api/classes/${id}`),
+  getTypes: () => api.get('/api/classes/types'),
   create: (data) => api.post('/api/classes/', data),
   update: (id, data) => api.put(`/api/classes/${id}`, data),
   delete: (id) => api.delete(`/api/classes/${id}`),

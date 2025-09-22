@@ -4,12 +4,17 @@ from sqlalchemy import and_
 from typing import List
 
 from ..models.database import get_db
-from ..models.classes import Class
+from ..models.classes import Class, ClassType
 from ..models.user import User
 from ..auth import get_current_user
 from .. import schemas
 
 router = APIRouter(prefix="/classes", tags=["classes"])
+
+@router.get("/types", response_model=List[str])
+def get_class_types():
+    """Get all available class types"""
+    return [class_type.value for class_type in ClassType]
 
 @router.get("/", response_model=List[schemas.Class])
 def get_classes(

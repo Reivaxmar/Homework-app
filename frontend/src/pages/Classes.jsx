@@ -6,6 +6,7 @@ import { classesAPI } from '../services/api'
 
 function Classes() {
   const [classes, setClasses] = useState([])
+  const [classTypes, setClassTypes] = useState([])
   const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
   const [editingClass, setEditingClass] = useState(null)
@@ -38,6 +39,7 @@ function Classes() {
 
   useEffect(() => {
     fetchClasses()
+    fetchClassTypes()
   }, [])
 
   const fetchClasses = async () => {
@@ -50,6 +52,25 @@ function Classes() {
     } finally {
       setLoading(false)
     }
+  }
+
+  const fetchClassTypes = async () => {
+    try {
+      const response = await classesAPI.getTypes()
+      setClassTypes(response.data)
+    } catch (error) {
+      console.error('Error fetching class types:', error)
+      // Set default types as fallback
+      setClassTypes(['MATHS', 'ENGLISH', 'SCIENCE', 'HISTORY', 'GEOGRAPHY', 'ART', 'MUSIC', 'PHYSICAL_EDUCATION', 'COMPUTER_SCIENCE', 'FOREIGN_LANGUAGE', 'LITERATURE', 'CHEMISTRY', 'PHYSICS', 'BIOLOGY', 'OTHER'])
+    }
+  }
+
+  // Convert class type to display name
+  const formatClassType = (classType) => {
+    return classType
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ')
   }
 
   const onSubmit = async (data) => {
@@ -97,7 +118,8 @@ function Classes() {
       teacher: '',
       year: '',
       half_group: '',
-      color: generateRandomColor()
+      color: generateRandomColor(),
+      class_type: ''
     })
   }
 
@@ -107,7 +129,8 @@ function Classes() {
       teacher: '',
       year: '',
       half_group: '',
-      color: generateRandomColor()
+      color: generateRandomColor(),
+      class_type: ''
     })
     setShowModal(true)
   }
@@ -180,6 +203,10 @@ function Classes() {
                     <div className="flex items-center gap-2">
                       <GraduationCap className="h-4 w-4" />
                       <span>{classItem.year}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <BookOpen className="h-4 w-4" />
+                      <span>{formatClassType(classItem.class_type || 'OTHER')}</span>
                     </div>
                   </div>
                 </div>
@@ -268,6 +295,26 @@ function Classes() {
                   className="input"
                   placeholder="e.g., A, B"
                 />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Class Type
+                </label>
+                <select
+                  {...register('class_type', { required: 'Class type is required' })}
+                  className="input"
+                >
+                  <option value="">Select a class type</option>
+                  {classTypes.map((type) => (
+                    <option key={type} value={type}>
+                      {formatClassType(type)}
+                    </option>
+                  ))}
+                </select>
+                {errors.class_type && (
+                  <p className="text-red-600 text-sm mt-1">{errors.class_type.message}</p>
+                )}
               </div>
 
               <div>
