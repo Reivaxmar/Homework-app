@@ -6,7 +6,7 @@ import pytest
 import tempfile
 import os
 from unittest.mock import Mock, patch
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 from fastapi.testclient import TestClient
 from faker import Faker
@@ -16,7 +16,7 @@ from app.models.database import get_db, Base
 from app.models.user import User
 from app.models.classes import Class
 from app.models.homework import Homework
-from app.models.schedule import Schedule, ScheduleSlot
+from app.models.schedule import Schedule, ScheduleSlot, ScheduleSlot
 
 fake = Faker()
 
@@ -34,9 +34,19 @@ def test_session(test_engine):
     """Create a test database session."""
     TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=test_engine)
     session = TestingSessionLocal()
+    
+    # Clean up any existing data
+    session.execute(text("DELETE FROM homework"))
+    session.execute(text("DELETE FROM schedule_slots"))
+    session.execute(text("DELETE FROM schedules"))
+    session.execute(text("DELETE FROM classes"))
+    session.execute(text("DELETE FROM users"))
+    session.commit()
+    
     try:
         yield session
     finally:
+        session.rollback()
         session.close()
 
 @pytest.fixture(scope="function")

@@ -35,9 +35,9 @@ class TestUserModel:
     def test_user_with_google_tokens(self, test_session):
         """Test user with Google OAuth tokens."""
         user = User(
-            email="test@example.com",
-            full_name="Test User",
-            supabase_user_id="test-123",
+            email="test_google@example.com",
+            full_name="Test Google User",
+            supabase_user_id="test-google-123",
             google_access_token="access_token",
             google_refresh_token="refresh_token"
         )
@@ -50,14 +50,14 @@ class TestUserModel:
     def test_user_email_uniqueness(self, test_session):
         """Test that user emails must be unique."""
         user1 = User(
-            email="test@example.com",
+            email="unique_test@example.com",
             full_name="Test User 1",
-            supabase_user_id="test-123"
+            supabase_user_id="unique-test-123"
         )
         user2 = User(
-            email="test@example.com",
+            email="unique_test@example.com",
             full_name="Test User 2",
-            supabase_user_id="test-456"
+            supabase_user_id="unique-test-456"
         )
         
         test_session.add(user1)
