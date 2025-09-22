@@ -258,6 +258,63 @@ The app will be available at `http://localhost:3000`
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
+## Testing
+
+This application includes comprehensive testing coverage:
+
+### Test Suites
+
+- **Backend Tests**: 89 tests with 75% coverage
+  - Model tests (User, Class, Homework, Schedule)
+  - API route tests (Authentication, Classes, Homework)
+  - Service tests (Google Calendar integration)
+  - Integration tests (Full workflows)
+
+- **Frontend Tests**: Component and page tests
+  - React component testing with React Testing Library
+  - Mock implementations for external dependencies
+  - User interaction and accessibility testing
+
+### Running Tests
+
+**Backend:**
+```bash
+cd backend
+python -m pytest --cov=app --cov-report=html
+```
+
+**Frontend:**
+```bash
+cd frontend
+npm test
+```
+
+**With Coverage:**
+```bash
+cd backend && python -m pytest --cov=app --cov-report=term-missing
+cd frontend && npm run test:coverage
+```
+
+### Continuous Integration
+
+GitHub Actions automatically run all tests on:
+- Push to `main` or `develop` branches
+- Pull requests to `main` or `develop`
+
+The CI pipeline includes:
+- Backend tests with PostgreSQL integration
+- Frontend tests with Node.js
+- Code linting (Python: flake8, black, isort | JavaScript: ESLint)
+- Coverage reporting
+
+### Testing Documentation
+
+See [Testing Guide](docs/TESTING_GUIDE.md) for:
+- Detailed testing instructions
+- Writing new tests
+- CI/CD integration
+- Best practices and troubleshooting
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
