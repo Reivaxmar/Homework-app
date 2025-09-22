@@ -319,7 +319,7 @@ function Homework() {
                               <span>{classInfo.name}</span>
                             </div>
                           )}
-                          <div>Due: {format(dueDate, 'MMM d, yyyy')} at {homeworkItem.due_time || '23:59'}</div>
+                          <div>{t('common.due')}: {format(dueDate, 'MMM d, yyyy')} {t('common.at')} {homeworkItem.due_time || '23:59'}</div>
                           {getStatusBadge(homeworkItem)}
                         </div>
                       </div>
@@ -352,17 +352,17 @@ function Homework() {
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4 max-h-screen overflow-y-auto">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">
-              {editingHomework ? 'Edit Homework' : 'Add New Homework'}
+              {editingHomework ? t('homework.editHomework') : t('homework.addHomework')}
             </h2>
             
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Title
+                  {t('homework.homeworkTitle')}
                 </label>
                 <input
                   type="text"
-                  {...register('title', { required: 'Title is required' })}
+                  {...register('title', { required: t('homework.titleRequired') })}
                   className="input"
                   placeholder="e.g., Math homework chapter 5"
                 />
@@ -373,25 +373,25 @@ function Homework() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Description (Optional)
+                  {t('homework.description')}
                 </label>
                 <textarea
                   {...register('description')}
                   className="input"
                   rows={3}
-                  placeholder="Additional details about the assignment..."
+                  placeholder={t('homework.descriptionPlaceholder')}
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Class
+                  {t('homework.class')}
                 </label>
                 <select
-                  {...register('class_id', { required: 'Class is required' })}
+                  {...register('class_id', { required: t('homework.classRequired') })}
                   className="input"
                 >
-                  <option value="">Select a class</option>
+                  <option value="">{t('homework.selectClass')}</option>
                   {classes.map(cls => (
                     <option key={cls.id} value={cls.id}>{cls.name}</option>
                   ))}
@@ -403,11 +403,11 @@ function Homework() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Due Date
+                  {t('homework.dueDate')}
                 </label>
                 <input
                   type="date"
-                  {...register('due_date', { required: 'Due date is required' })}
+                  {...register('due_date', { required: t('homework.dueDateRequired') })}
                   className="input"
                 />
                 {errors.due_date && (
@@ -417,7 +417,7 @@ function Homework() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Due Time
+                  {t('homework.dueTime')}
                 </label>
                 <input
                   type="time"
@@ -429,15 +429,15 @@ function Homework() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Priority
+                  {t('homework.priority')}
                 </label>
                 <select
                   {...register('priority')}
                   className="input"
                 >
-                  <option value="LOW">Low</option>
-                  <option value="MEDIUM">Medium</option>
-                  <option value="HIGH">High</option>
+                  <option value="LOW">{t('priority.low')}</option>
+                  <option value="MEDIUM">{t('priority.medium')}</option>
+                  <option value="HIGH">{t('priority.high')}</option>
                 </select>
               </div>
 
@@ -446,14 +446,14 @@ function Homework() {
                   type="submit"
                   className="btn btn-primary flex-1"
                 >
-                  {editingHomework ? 'Update Homework' : 'Create Homework'}
+                  {editingHomework ? t('homework.updateHomework') : t('homework.createHomework')}
                 </button>
                 <button
                   type="button"
                   onClick={closeModal}
                   className="btn btn-secondary flex-1"
                 >
-                  Cancel
+                  {t('homework.cancel')}
                 </button>
               </div>
             </form>

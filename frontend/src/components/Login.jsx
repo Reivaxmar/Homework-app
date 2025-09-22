@@ -1,28 +1,35 @@
 import React, { useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
+import { useLanguage } from '../contexts/LanguageContext'
 import { useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { User, LogIn } from 'lucide-react'
+import LanguageSelector from './LanguageSelector'
 
 const Login = () => {
   const [loading, setLoading] = useState(false)
   const { signInWithGoogle } = useAuth()
+  const { t } = useLanguage()
   const navigate = useNavigate()
 
   const handleGoogleSignIn = async () => {
     setLoading(true)
     try {
       await signInWithGoogle()
-      toast.success('Redirecting to Google...')
+      toast.success(t('login.redirecting'))
       // Navigation will happen automatically after successful auth
     } catch (error) {
-      toast.error('Failed to sign in with Google. Please try again.')
+      toast.error(t('login.signInError'))
       setLoading(false)
     }
   }
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+      <div className="absolute top-4 right-4">
+        <LanguageSelector />
+      </div>
+      
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-center">
           <div className="bg-blue-600 p-3 rounded-full">
@@ -30,10 +37,10 @@ const Login = () => {
           </div>
         </div>
         <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-          Sign in to Homework Manager
+          {t('login.title')}
         </h2>
         <p className="mt-2 text-center text-sm text-gray-600">
-          Access your homework and sync with Google Calendar
+          {t('login.subtitle')}
         </p>
       </div>
 
@@ -68,7 +75,7 @@ const Login = () => {
                         d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
                       />
                     </svg>
-                    Sign in with Google
+                    {t('login.signInWithGoogle')}
                   </>
                 )}
               </button>
