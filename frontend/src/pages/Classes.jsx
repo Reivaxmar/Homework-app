@@ -3,8 +3,10 @@ import { Plus, Edit2, Trash2, User, GraduationCap, BookOpen } from 'lucide-react
 import { useForm } from 'react-hook-form'
 import toast from 'react-hot-toast'
 import { classesAPI } from '../services/api'
+import { useLanguage } from '../contexts/LanguageContext'
 
 function Classes() {
+  const { t } = useLanguage()
   const [classes, setClasses] = useState([])
   const [classTypes, setClassTypes] = useState([])
   const [loading, setLoading] = useState(true)
@@ -47,7 +49,7 @@ function Classes() {
       const response = await classesAPI.getAll()
       setClasses(response.data)
     } catch (error) {
-      toast.error('Failed to fetch classes')
+      toast.error(t('classes.loading'))
       console.error('Error fetching classes:', error)
     } finally {
       setLoading(false)
@@ -65,8 +67,14 @@ function Classes() {
     }
   }
 
-  // Convert class type to display name
+  // Convert class type to display name using translations
   const formatClassType = (classType) => {
+    const translationKey = `classType.${classType.toLowerCase().replace(/_/g, '')}`
+    const translated = t(translationKey)
+    // If translation exists, use it, otherwise fall back to formatted original
+    if (translated !== translationKey) {
+      return translated
+    }
     return classType
       .split('_')
       .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
@@ -77,16 +85,16 @@ function Classes() {
     try {
       if (editingClass) {
         await classesAPI.update(editingClass.id, data)
-        toast.success('Class updated successfully')
+        toast.success(t('classes.updated'))
       } else {
         await classesAPI.create(data)
-        toast.success('Class created successfully')
+        toast.success(t('classes.created'))
       }
       
       fetchClasses()
       closeModal()
     } catch (error) {
-      toast.error('Failed to save class')
+      toast.error(editingClass ? t('classes.updateError') : t('classes.createError'))
       console.error('Error saving class:', error)
     }
   }
@@ -98,13 +106,13 @@ function Classes() {
   }
 
   const handleDelete = async (classItem) => {
-    if (window.confirm(`Are you sure you want to delete "${classItem.name}"?`)) {
+    if (window.confirm(`${t('classes.delete')} "${classItem.name}"?`)) {
       try {
         await classesAPI.delete(classItem.id)
-        toast.success('Class deleted successfully')
+        toast.success(t('classes.deleted'))
         fetchClasses()
       } catch (error) {
-        toast.error('Failed to delete class')
+        toast.error(t('classes.deleteError'))
         console.error('Error deleting class:', error)
       }
     }
@@ -140,7 +148,7 @@ function Classes() {
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto"></div>
-          <p className="mt-2 text-gray-600">Loading classes...</p>
+          <p className="mt-2 text-gray-600">{t('classes.loading')}</p>
         </div>
       </div>
     )
@@ -150,28 +158,28 @@ function Classes() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Classes</h1>
-          <p className="text-gray-600">Manage your school classes</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('classes.title')}</h1>
+          <p className="text-gray-600">{t('classes.subtitle')}</p>
         </div>
         <button
           onClick={openCreateModal}
           className="btn btn-primary flex items-center gap-2"
         >
           <Plus className="h-4 w-4" />
-          Add Class
+          {t('classes.addClass')}
         </button>
       </div>
 
       {classes.length === 0 ? (
         <div className="text-center py-12">
           <BookOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No classes yet</h3>
-          <p className="text-gray-600 mb-4">Get started by adding your first class</p>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">{t('classes.noClasses')}</h3>
+          <p className="text-gray-600 mb-4">{t('classes.noClassesDesc')}</p>
           <button
             onClick={openCreateModal}
             className="btn btn-primary"
           >
-            Add Class
+            {t('classes.addClass')}
           </button>
         </div>
       ) : (
@@ -236,17 +244,17 @@ function Classes() {
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">
-              {editingClass ? 'Edit Class' : 'Add New Class'}
+              {editingClass ? t('classes.editClass') : t('classes.addClass')}
             </h2>
             
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Class Name
+                  {t('classes.className')}
                 </label>
                 <input
                   type="text"
-                  {...register('name', { required: 'Class name is required' })}
+                  {...register('name', { required: t('classes.classNameRequired') })}
                   className="input"
                   placeholder="e.g., Mathematics"
                 />
@@ -299,13 +307,13 @@ function Classes() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Class Type
+                  {t('classes.classType')}
                 </label>
                 <select
-                  {...register('class_type', { required: 'Class type is required' })}
+                  {...register('class_type', { required: t('classes.classTypeRequired') })}
                   className="input"
                 >
-                  <option value="">Select a class type</option>
+                  <option value="">{t('classes.selectClassType')}</option>
                   {classTypes.map((type) => (
                     <option key={type} value={type}>
                       {formatClassType(type)}
@@ -319,7 +327,7 @@ function Classes() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Color
+                  {t('classes.color')}
                 </label>
                 <input
                   type="color"
@@ -333,14 +341,14 @@ function Classes() {
                   type="submit"
                   className="btn btn-primary flex-1"
                 >
-                  {editingClass ? 'Update Class' : 'Create Class'}
+                  {editingClass ? t('classes.updateClass') : t('classes.createClass')}
                 </button>
                 <button
                   type="button"
                   onClick={closeModal}
                   className="btn btn-secondary flex-1"
                 >
-                  Cancel
+                  {t('classes.cancel')}
                 </button>
               </div>
             </form>

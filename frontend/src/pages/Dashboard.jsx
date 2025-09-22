@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react'
 import { BookOpen, CheckSquare, Clock, AlertTriangle, Calendar, Trash2 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { dashboardAPI, homeworkAPI } from '../services/api'
+import { useLanguage } from '../contexts/LanguageContext'
 import { format } from 'date-fns'
 
 function Dashboard() {
+  const { t } = useLanguage()
   const [summary, setSummary] = useState({
     total_classes: 0,
     pending_homework: 0,
@@ -42,22 +44,16 @@ function Dashboard() {
   }
 
   const handleClearAllData = async () => {
-    const confirmed = window.confirm(
-      'Are you sure you want to remove ALL data? This will permanently delete:\n\n' +
-      '• All classes\n' +
-      '• All homework assignments\n' +
-      '• All schedules\n\n' +
-      'This action cannot be undone!'
-    )
+    const confirmed = window.confirm(t('dashboard.clearDataConfirm'))
     
     if (confirmed) {
       try {
         await dashboardAPI.clearAllData()
-        toast.success('All data has been successfully cleared')
+        toast.success(t('message.dataCleared'))
         // Refresh the dashboard data
         fetchDashboardData()
       } catch (error) {
-        toast.error('Failed to clear data')
+        toast.error(t('message.clearDataError'))
         console.error('Error clearing data:', error)
       }
     }
@@ -102,7 +98,7 @@ function Dashboard() {
                 <div className="flex-1">
                   <h4 className="font-medium text-gray-900">{item.title}</h4>
                   <p className="text-sm text-gray-600">
-                    Due: {format(new Date(item.due_date), 'MMM d, yyyy')} at {item.due_time || '23:59'}
+                    {t('common.due')}: {format(new Date(item.due_date), 'MMM d, yyyy')} {t('common.at')} {item.due_time || '23:59'}
                   </p>
                 </div>
                 <div className={`px-2 py-1 rounded-full text-xs font-medium ${
@@ -127,7 +123,7 @@ function Dashboard() {
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto"></div>
-          <p className="mt-2 text-gray-600">Loading dashboard...</p>
+          <p className="mt-2 text-gray-600">{t('dashboard.loading')}</p>
         </div>
       </div>
     )
@@ -137,46 +133,46 @@ function Dashboard() {
     <div className="space-y-6">
       <div className="flex justify-between items-start">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-gray-600">Overview of your classes and homework</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('dashboard.title')}</h1>
+          <p className="text-gray-600">{t('dashboard.subtitle')}</p>
         </div>
         <button
           onClick={handleClearAllData}
           className="inline-flex items-center px-4 py-2 border border-red-300 text-sm font-medium rounded-md text-red-700 bg-red-50 hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
         >
           <Trash2 className="h-4 w-4 mr-2" />
-          Remove All Data
+          {t('dashboard.clearData')}
         </button>
       </div>
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
         <StatCard
-          title="Total Classes"
+          title={t('dashboard.totalClasses')}
           value={summary.total_classes}
           icon={BookOpen}
           color="blue"
         />
         <StatCard
-          title="Pending Homework"
+          title={t('dashboard.pendingHomework')}
           value={summary.pending_homework}
           icon={CheckSquare}
           color="purple"
         />
         <StatCard
-          title="Due Today"
+          title={t('dashboard.dueToday')}
           value={summary.due_today}
           icon={Clock}
           color="yellow"
         />
         <StatCard
-          title="Overdue"
+          title={t('dashboard.overdue')}
           value={summary.overdue}
           icon={AlertTriangle}
           color="red"
         />
         <StatCard
-          title="Completed This Week"
+          title={t('dashboard.completedWeek')}
           value={summary.completed_this_week}
           icon={Calendar}
           color="green"
@@ -186,21 +182,21 @@ function Dashboard() {
       {/* Homework Lists */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <HomeworkList
-          title="Due Today"
+          title={t('dashboard.dueToday.title')}
           homework={dueToday}
-          emptyMessage="No homework due today! 🎉"
+          emptyMessage={t('dashboard.dueToday.empty')}
           color="yellow"
         />
         <HomeworkList
-          title="Due Next Week"
+          title={t('dashboard.dueNextWeek.title')}
           homework={dueNextWeek}
-          emptyMessage="No homework due in the next 7 days!"
+          emptyMessage={t('dashboard.dueNextWeek.empty')}
           color="blue"
         />
         <HomeworkList
-          title="Overdue"
+          title={t('dashboard.overdue.title')}
           homework={overdue}
-          emptyMessage="No overdue homework!"
+          emptyMessage={t('dashboard.overdue.empty')}
           color="red"
         />
       </div>

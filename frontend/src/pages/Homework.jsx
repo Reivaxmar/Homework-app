@@ -3,6 +3,7 @@ import { Plus, Edit2, Trash2, CheckSquare, Clock, AlertTriangle, Filter } from '
 import { useForm } from 'react-hook-form'
 import toast from 'react-hot-toast'
 import { homeworkAPI, classesAPI } from '../services/api'
+import { useLanguage } from '../contexts/LanguageContext'
 import { format, isToday, isPast, parseISO } from 'date-fns'
 
 const PRIORITY_COLORS = {
@@ -18,6 +19,7 @@ const STATUS_COLORS = {
 }
 
 function Homework() {
+  const { t } = useLanguage()
   const [homework, setHomework] = useState([])
   const [classes, setClasses] = useState([])
   const [loading, setLoading] = useState(true)
@@ -41,7 +43,7 @@ function Homework() {
       setHomework(homeworkRes.data)
       setClasses(classesRes.data)
     } catch (error) {
-      toast.error('Failed to fetch data')
+      toast.error(t('homework.loading'))
       console.error('Error fetching data:', error)
     } finally {
       setLoading(false)
@@ -55,16 +57,16 @@ function Homework() {
       
       if (editingHomework) {
         await homeworkAPI.update(editingHomework.id, data)
-        toast.success('Homework updated successfully')
+        toast.success(t('homework.updated'))
       } else {
         await homeworkAPI.create(data)
-        toast.success('Homework created successfully')
+        toast.success(t('homework.created'))
       }
       
       fetchData()
       closeModal()
     } catch (error) {
-      toast.error('Failed to save homework')
+      toast.error(editingHomework ? t('homework.updateError') : t('homework.createError'))
       console.error('Error saving homework:', error)
     }
   }
@@ -80,13 +82,13 @@ function Homework() {
   }
 
   const handleDelete = async (homeworkItem) => {
-    if (window.confirm(`Are you sure you want to delete "${homeworkItem.title}"?`)) {
+    if (window.confirm(`${t('homework.delete')} "${homeworkItem.title}"?`)) {
       try {
         await homeworkAPI.delete(homeworkItem.id)
-        toast.success('Homework deleted successfully')
+        toast.success(t('homework.deleted'))
         fetchData()
       } catch (error) {
-        toast.error('Failed to delete homework')
+        toast.error(t('homework.deleteError'))
         console.error('Error deleting homework:', error)
       }
     }
@@ -174,19 +176,20 @@ function Homework() {
     const isDueToday = isToday(dueDate)
     
     if (homework.status === 'COMPLETED') {
-      return <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">Completed</span>
+      return <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">{t('status.completed')}</span>
     }
     
     if (isOverdue) {
-      return <span className="px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">Overdue</span>
+      return <span className="px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">{t('filter.overdue')}</span>
     }
     
     if (isDueToday) {
-      return <span className="px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">Due Today</span>
+      return <span className="px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">{t('filter.dueToday')}</span>
     }
     
+    const statusKey = `status.${homework.status.toLowerCase().replace('_', '')}`
     return <span className={`px-2 py-1 rounded-full text-xs font-medium ${STATUS_COLORS[homework.status]}`}>
-      {homework.status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+      {t(statusKey)}
     </span>
   }
 
@@ -195,7 +198,7 @@ function Homework() {
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto"></div>
-          <p className="mt-2 text-gray-600">Loading homework...</p>
+          <p className="mt-2 text-gray-600">{t('homework.loading')}</p>
         </div>
       </div>
     )
@@ -205,26 +208,26 @@ function Homework() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Homework</h1>
-          <p className="text-gray-600">Manage your assignments and due dates</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('homework.title')}</h1>
+          <p className="text-gray-600">{t('homework.subtitle')}</p>
         </div>
         <button
           onClick={openCreateModal}
           className="btn btn-primary flex items-center gap-2"
         >
           <Plus className="h-4 w-4" />
-          Add Homework
+          {t('homework.addHomework')}
         </button>
       </div>
 
       {/* Filters */}
       <div className="flex flex-wrap gap-2">
         {[
-          { key: 'all', label: 'All' },
-          { key: 'pending', label: 'Pending' },
-          { key: 'due_today', label: 'Due Today' },
-          { key: 'overdue', label: 'Overdue' },
-          { key: 'completed', label: 'Completed' }
+          { key: 'all', label: t('filter.all') },
+          { key: 'pending', label: t('filter.pending') },
+          { key: 'due_today', label: t('filter.dueToday') },
+          { key: 'overdue', label: t('filter.overdue') },
+          { key: 'completed', label: t('filter.completed') }
         ].map(filterOption => (
           <button
             key={filterOption.key}
@@ -244,17 +247,22 @@ function Homework() {
         <div className="text-center py-12">
           <CheckSquare className="h-12 w-12 text-gray-400 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">
-            {filter === 'all' ? 'No homework yet' : `No ${filter.replace('_', ' ')} homework`}
+            {filter === 'all' ? t('homework.noHomework') : 
+             filter === 'pending' ? t('homework.noPending') :
+             filter === 'due_today' ? t('homework.noDueToday') :
+             filter === 'overdue' ? t('homework.noOverdue') :
+             filter === 'completed' ? t('homework.noCompleted') :
+             `No ${filter.replace('_', ' ')} homework`}
           </h3>
           <p className="text-gray-600 mb-4">
-            {filter === 'all' ? 'Get started by adding your first assignment' : 'Try changing the filter'}
+            {filter === 'all' ? t('homework.noHomeworkDesc') : t('homework.tryFilter')}
           </p>
           {filter === 'all' && (
             <button
               onClick={openCreateModal}
               className="btn btn-primary"
             >
-              Add Homework
+              {t('homework.addHomework')}
             </button>
           )}
         </div>
