@@ -11,24 +11,27 @@ import {
   LogOut 
 } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
+import { useLanguage } from '../contexts/LanguageContext'
+import LanguageSelector from './LanguageSelector'
 import toast from 'react-hot-toast'
-
-const navigation = [
-  { name: 'Dashboard', href: '/', icon: Home },
-  { name: 'Classes', href: '/classes', icon: BookOpen },
-  { name: 'Schedule', href: '/schedule', icon: Calendar },
-  { name: 'Homework', href: '/homework', icon: CheckSquare },
-]
 
 function Layout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const location = useLocation()
   const { user, logout } = useAuth()
+  const { t } = useLanguage()
+
+  const navigation = [
+    { name: t('nav.dashboard'), href: '/', icon: Home },
+    { name: t('nav.classes'), href: '/classes', icon: BookOpen },
+    { name: t('nav.schedule'), href: '/schedule', icon: Calendar },
+    { name: t('nav.homework'), href: '/homework', icon: CheckSquare },
+  ]
 
   const handleLogout = () => {
     logout()
-    toast.success('Logged out successfully')
+    toast.success(t('message.logoutSuccess'))
   }
 
   return (
@@ -38,7 +41,7 @@ function Layout({ children }) {
         <div className="fixed inset-0 bg-gray-600 bg-opacity-75" onClick={() => setSidebarOpen(false)} />
         <div className="fixed inset-y-0 left-0 flex w-64 flex-col bg-white shadow-xl">
           <div className="flex h-16 items-center justify-between px-4">
-            <h1 className="text-xl font-bold text-gray-900">Homework App</h1>
+            <h1 className="text-xl font-bold text-gray-900">{t('app.title')}</h1>
             <button
               onClick={() => setSidebarOpen(false)}
               className="text-gray-500 hover:text-gray-700"
@@ -63,6 +66,12 @@ function Layout({ children }) {
               </Link>
             ))}
           </nav>
+          
+          {/* Mobile language selector */}
+          <div className="px-4 pb-2">
+            <LanguageSelector />
+          </div>
+          
           {/* Mobile user menu */}
           <div className="border-t border-gray-200 p-4">
             <div className="flex items-center">
@@ -85,7 +94,7 @@ function Layout({ children }) {
               className="mt-3 w-full flex items-center px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md"
             >
               <LogOut className="mr-3 h-4 w-4" />
-              Sign out
+              {t('nav.signOut')}
             </button>
           </div>
         </div>
@@ -94,7 +103,7 @@ function Layout({ children }) {
       {/* Desktop sidebar */}
       <div className="hidden lg:flex lg:w-64 lg:flex-col lg:bg-white lg:border-r lg:border-gray-200">
         <div className="flex h-16 items-center px-4">
-          <h1 className="text-xl font-bold text-gray-900">Homework App</h1>
+          <h1 className="text-xl font-bold text-gray-900">{t('app.title')}</h1>
         </div>
         <nav className="flex-1 space-y-1 px-2 py-4">
           {navigation.map((item) => (
@@ -112,6 +121,11 @@ function Layout({ children }) {
             </Link>
           ))}
         </nav>
+        
+        {/* Language selector */}
+        <div className="px-4 pb-2">
+          <LanguageSelector />
+        </div>
         
         {/* Desktop user menu */}
         <div className="border-t border-gray-200 p-4">
@@ -135,7 +149,7 @@ function Layout({ children }) {
             className="mt-3 w-full flex items-center px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-md"
           >
             <LogOut className="mr-3 h-4 w-4" />
-            Sign out
+            {t('nav.signOut')}
           </button>
         </div>
       </div>
@@ -151,7 +165,7 @@ function Layout({ children }) {
             >
               <Menu className="h-6 w-6" />
             </button>
-            <h1 className="text-lg font-semibold text-gray-900">Homework App</h1>
+            <h1 className="text-lg font-semibold text-gray-900">{t('app.title')}</h1>
             <div className="w-6" /> {/* Spacer */}
           </div>
         </div>

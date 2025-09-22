@@ -2,6 +2,7 @@ import React from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import { Toaster } from 'react-hot-toast'
 import { AuthProvider } from './contexts/AuthContext'
+import { LanguageProvider } from './contexts/LanguageContext'
 import Layout from './components/Layout'
 import Login from './components/Login'
 import AuthCallback from './components/AuthCallback'
@@ -13,30 +14,32 @@ import Homework from './pages/Homework'
 
 function App() {
   return (
-    <AuthProvider>
-      <Router>
-        <div className="min-h-screen bg-gray-50">
-          <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route path="/auth/callback" element={<AuthCallback />} />
-            <Route path="/*" element={
-              <ProtectedRoute>
-                <Layout>
-                  <Routes>
-                    <Route path="/" element={<Dashboard />} />
-                    <Route path="/dashboard" element={<Dashboard />} />
-                    <Route path="/classes" element={<Classes />} />
-                    <Route path="/schedule" element={<Schedule />} />
-                    <Route path="/homework" element={<Homework />} />
-                  </Routes>
-                </Layout>
-              </ProtectedRoute>
-            } />
-          </Routes>
-          <Toaster position="top-right" />
-        </div>
-      </Router>
-    </AuthProvider>
+    <LanguageProvider>
+      <AuthProvider>
+        <Router>
+          <div className="min-h-screen bg-gray-50">
+            <Routes>
+              <Route path="/login" element={<Login />} />
+              <Route path="/auth/callback" element={<AuthCallback />} />
+              <Route path="/*" element={
+                <ProtectedRoute>
+                  <Layout>
+                    <Routes>
+                      <Route path="/" element={<Dashboard />} />
+                      <Route path="/dashboard" element={<Dashboard />} />
+                      <Route path="/classes" element={<Classes />} />
+                      <Route path="/schedule" element={<Schedule />} />
+                      <Route path="/homework" element={<Homework />} />
+                    </Routes>
+                  </Layout>
+                </ProtectedRoute>
+              } />
+            </Routes>
+            <Toaster position="top-right" />
+          </div>
+        </Router>
+      </AuthProvider>
+    </LanguageProvider>
   )
 }
 
