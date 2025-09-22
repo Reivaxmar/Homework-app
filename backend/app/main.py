@@ -42,4 +42,7 @@ async def health_check():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    import os
+    # Only bind to all interfaces in development, use localhost in production
+    host = "127.0.0.1" if os.getenv("ENVIRONMENT") == "production" else "0.0.0.0"  # nosec B104
+    uvicorn.run(app, host=host, port=8000)
