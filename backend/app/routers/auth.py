@@ -4,6 +4,7 @@ from pydantic import BaseModel
 from typing import Optional
 import requests
 import logging
+import traceback
 
 from ..models.database import get_db
 from ..models.user import User
@@ -25,6 +26,10 @@ class LoginRequest(BaseModel):
     full_name: str
     google_access_token: Optional[str] = None
     google_refresh_token: Optional[str] = None
+    timezone: Optional[str] = None  # Add timezone support
+
+class TimezoneUpdateRequest(BaseModel):
+    timezone: str
 
 class LoginResponse(BaseModel):
     user: schemas.User
@@ -48,6 +53,8 @@ async def login(
             if login_data.google_access_token:
                 user.google_access_token = login_data.google_access_token
                 user.google_refresh_token = login_data.google_refresh_token
+            if login_data.timezone:
+                user.timezone = login_data.timezone
         else:
             # Create new user
             user = User(
@@ -56,7 +63,8 @@ async def login(
                 avatar_url=None,
                 supabase_user_id=f"user_{login_data.email}",  # Simple ID for now
                 google_access_token=login_data.google_access_token,
-                google_refresh_token=login_data.google_refresh_token
+                google_refresh_token=login_data.google_refresh_token,
+                timezone=login_data.timezone or 'UTC'
             )
             db.add(user)
         
@@ -75,9 +83,10 @@ async def login(
         
     except Exception as e:
         logger.error(f"Login error: {e}")
+        logger.error(f"Traceback: {traceback.format_exc()}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Login failed"
+            detail=f"Login failed: {str(e)}"
         )
 
 @router.post("/google/callback")
@@ -93,11 +102,14 @@ async def google_auth_callback(
         if token_data.access_token:
             response = requests.get(
                 "https://www.googleapis.com/oauth2/v1/userinfo",
-                headers={"Authorization": f"Bearer {token_data.access_token}"}
+                headers={"Authorization": f"Bearer {token_data.access_token}"},
+                timeout=10  # Add timeout
             )
             
             if response.status_code == 200:
                 google_user = response.json()
+            else:
+                logger.warning(f"Failed to get Google user info: {response.status_code} - {response.text}")
         
         # Check if user exists by supabase_user_id
         user = db.query(User).filter(
@@ -128,7 +140,8 @@ async def google_auth_callback(
                 avatar_url=google_user.get("picture"),
                 supabase_user_id=supabase_user_id,
                 google_access_token=token_data.access_token,
-                google_refresh_token=token_data.refresh_token
+                google_refresh_token=token_data.refresh_token,
+                timezone='UTC'  # Default timezone, will be updated by frontend
             )
             if token_data.expires_in:
                 from datetime import datetime, timedelta
@@ -149,11 +162,18 @@ async def google_auth_callback(
             message="Authentication successful"
         )
         
+    except requests.RequestException as e:
+        logger.error(f"Google API request error: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="Failed to communicate with Google services"
+        )
     except Exception as e:
         logger.error(f"Google auth error: {e}")
+        logger.error(f"Traceback: {traceback.format_exc()}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Authentication failed"
+            detail=f"Authentication failed: {str(e)}"
         )
 
 @router.get("/me", response_model=schemas.User)
@@ -176,3 +196,33 @@ async def update_current_user(
     db.commit()
     db.refresh(current_user)
     return current_user
+
+@router.put("/me/timezone", response_model=schemas.User)
+async def update_user_timezone(
+    timezone_update: TimezoneUpdateRequest,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Update user timezone"""
+    try:
+        # Validate timezone
+        import pytz
+        pytz.timezone(timezone_update.timezone)
+        
+        current_user.timezone = timezone_update.timezone
+        db.commit()
+        db.refresh(current_user)
+        
+        return current_user
+        
+    except pytz.exceptions.UnknownTimeZoneError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid timezone: {timezone_update.timezone}"
+        )
+    except Exception as e:
+        logger.error(f"Timezone update error: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to update timezone"
+        )
