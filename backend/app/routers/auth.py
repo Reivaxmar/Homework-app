@@ -93,7 +93,8 @@ async def google_auth_callback(
         if token_data.access_token:
             response = requests.get(
                 "https://www.googleapis.com/oauth2/v1/userinfo",
-                headers={"Authorization": f"Bearer {token_data.access_token}"}
+                headers={"Authorization": f"Bearer {token_data.access_token}"},
+                timeout=10  # Add timeout to prevent hanging requests
             )
             
             if response.status_code == 200:
