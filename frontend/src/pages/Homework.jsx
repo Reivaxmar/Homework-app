@@ -3,6 +3,7 @@ import { Plus, Edit2, Trash2, CheckSquare, Clock, AlertTriangle, Filter } from '
 import { useForm } from 'react-hook-form'
 import toast from 'react-hot-toast'
 import { homeworkAPI, classesAPI } from '../services/api'
+import { useLanguage } from '../contexts/LanguageContext'
 import { format, isToday, isPast, parseISO } from 'date-fns'
 
 const PRIORITY_COLORS = {
@@ -18,6 +19,7 @@ const STATUS_COLORS = {
 }
 
 function Homework() {
+  const { t } = useLanguage()
   const [homework, setHomework] = useState([])
   const [classes, setClasses] = useState([])
   const [loading, setLoading] = useState(true)
@@ -41,7 +43,7 @@ function Homework() {
       setHomework(homeworkRes.data)
       setClasses(classesRes.data)
     } catch (error) {
-      toast.error('Failed to fetch data')
+      toast.error(t('homework.loading'))
       console.error('Error fetching data:', error)
     } finally {
       setLoading(false)
@@ -55,16 +57,16 @@ function Homework() {
       
       if (editingHomework) {
         await homeworkAPI.update(editingHomework.id, data)
-        toast.success('Homework updated successfully')
+        toast.success(t('homework.updated'))
       } else {
         await homeworkAPI.create(data)
-        toast.success('Homework created successfully')
+        toast.success(t('homework.created'))
       }
       
       fetchData()
       closeModal()
     } catch (error) {
-      toast.error('Failed to save homework')
+      toast.error(editingHomework ? t('homework.updateError') : t('homework.createError'))
       console.error('Error saving homework:', error)
     }
   }
@@ -80,13 +82,13 @@ function Homework() {
   }
 
   const handleDelete = async (homeworkItem) => {
-    if (window.confirm(`Are you sure you want to delete "${homeworkItem.title}"?`)) {
+    if (window.confirm(`${t('homework.delete')} "${homeworkItem.title}"?`)) {
       try {
         await homeworkAPI.delete(homeworkItem.id)
-        toast.success('Homework deleted successfully')
+        toast.success(t('homework.deleted'))
         fetchData()
       } catch (error) {
-        toast.error('Failed to delete homework')
+        toast.error(t('homework.deleteError'))
         console.error('Error deleting homework:', error)
       }
     }
@@ -174,19 +176,20 @@ function Homework() {
     const isDueToday = isToday(dueDate)
     
     if (homework.status === 'COMPLETED') {
-      return <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">Completed</span>
+      return <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">{t('status.completed')}</span>
     }
     
     if (isOverdue) {
-      return <span className="px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">Overdue</span>
+      return <span className="px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">{t('filter.overdue')}</span>
     }
     
     if (isDueToday) {
-      return <span className="px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">Due Today</span>
+      return <span className="px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">{t('filter.dueToday')}</span>
     }
     
+    const statusKey = `status.${homework.status.toLowerCase().replace('_', '')}`
     return <span className={`px-2 py-1 rounded-full text-xs font-medium ${STATUS_COLORS[homework.status]}`}>
-      {homework.status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+      {t(statusKey)}
     </span>
   }
 
@@ -195,7 +198,7 @@ function Homework() {
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600 mx-auto"></div>
-          <p className="mt-2 text-gray-600">Loading homework...</p>
+          <p className="mt-2 text-gray-600">{t('homework.loading')}</p>
         </div>
       </div>
     )
@@ -205,26 +208,26 @@ function Homework() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Homework</h1>
-          <p className="text-gray-600">Manage your assignments and due dates</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('homework.title')}</h1>
+          <p className="text-gray-600">{t('homework.subtitle')}</p>
         </div>
         <button
           onClick={openCreateModal}
           className="btn btn-primary flex items-center gap-2"
         >
           <Plus className="h-4 w-4" />
-          Add Homework
+          {t('homework.addHomework')}
         </button>
       </div>
 
       {/* Filters */}
       <div className="flex flex-wrap gap-2">
         {[
-          { key: 'all', label: 'All' },
-          { key: 'pending', label: 'Pending' },
-          { key: 'due_today', label: 'Due Today' },
-          { key: 'overdue', label: 'Overdue' },
-          { key: 'completed', label: 'Completed' }
+          { key: 'all', label: t('filter.all') },
+          { key: 'pending', label: t('filter.pending') },
+          { key: 'due_today', label: t('filter.dueToday') },
+          { key: 'overdue', label: t('filter.overdue') },
+          { key: 'completed', label: t('filter.completed') }
         ].map(filterOption => (
           <button
             key={filterOption.key}
@@ -244,17 +247,22 @@ function Homework() {
         <div className="text-center py-12">
           <CheckSquare className="h-12 w-12 text-gray-400 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">
-            {filter === 'all' ? 'No homework yet' : `No ${filter.replace('_', ' ')} homework`}
+            {filter === 'all' ? t('homework.noHomework') : 
+             filter === 'pending' ? t('homework.noPending') :
+             filter === 'due_today' ? t('homework.noDueToday') :
+             filter === 'overdue' ? t('homework.noOverdue') :
+             filter === 'completed' ? t('homework.noCompleted') :
+             `No ${filter.replace('_', ' ')} homework`}
           </h3>
           <p className="text-gray-600 mb-4">
-            {filter === 'all' ? 'Get started by adding your first assignment' : 'Try changing the filter'}
+            {filter === 'all' ? t('homework.noHomeworkDesc') : t('homework.tryFilter')}
           </p>
           {filter === 'all' && (
             <button
               onClick={openCreateModal}
               className="btn btn-primary"
             >
-              Add Homework
+              {t('homework.addHomework')}
             </button>
           )}
         </div>
@@ -311,7 +319,7 @@ function Homework() {
                               <span>{classInfo.name}</span>
                             </div>
                           )}
-                          <div>Due: {format(dueDate, 'MMM d, yyyy')} at {homeworkItem.due_time || '23:59'}</div>
+                          <div>{t('common.due')}: {format(dueDate, 'MMM d, yyyy')} {t('common.at')} {homeworkItem.due_time || '23:59'}</div>
                           {getStatusBadge(homeworkItem)}
                         </div>
                       </div>
@@ -344,17 +352,17 @@ function Homework() {
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4 max-h-screen overflow-y-auto">
             <h2 className="text-lg font-semibold text-gray-900 mb-4">
-              {editingHomework ? 'Edit Homework' : 'Add New Homework'}
+              {editingHomework ? t('homework.editHomework') : t('homework.addHomework')}
             </h2>
             
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Title
+                  {t('homework.homeworkTitle')}
                 </label>
                 <input
                   type="text"
-                  {...register('title', { required: 'Title is required' })}
+                  {...register('title', { required: t('homework.titleRequired') })}
                   className="input"
                   placeholder="e.g., Math homework chapter 5"
                 />
@@ -365,25 +373,25 @@ function Homework() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Description (Optional)
+                  {t('homework.description')}
                 </label>
                 <textarea
                   {...register('description')}
                   className="input"
                   rows={3}
-                  placeholder="Additional details about the assignment..."
+                  placeholder={t('homework.descriptionPlaceholder')}
                 />
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Class
+                  {t('homework.class')}
                 </label>
                 <select
-                  {...register('class_id', { required: 'Class is required' })}
+                  {...register('class_id', { required: t('homework.classRequired') })}
                   className="input"
                 >
-                  <option value="">Select a class</option>
+                  <option value="">{t('homework.selectClass')}</option>
                   {classes.map(cls => (
                     <option key={cls.id} value={cls.id}>{cls.name}</option>
                   ))}
@@ -395,11 +403,11 @@ function Homework() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Due Date
+                  {t('homework.dueDate')}
                 </label>
                 <input
                   type="date"
-                  {...register('due_date', { required: 'Due date is required' })}
+                  {...register('due_date', { required: t('homework.dueDateRequired') })}
                   className="input"
                 />
                 {errors.due_date && (
@@ -409,7 +417,7 @@ function Homework() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Due Time
+                  {t('homework.dueTime')}
                 </label>
                 <input
                   type="time"
@@ -421,15 +429,15 @@ function Homework() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Priority
+                  {t('homework.priority')}
                 </label>
                 <select
                   {...register('priority')}
                   className="input"
                 >
-                  <option value="LOW">Low</option>
-                  <option value="MEDIUM">Medium</option>
-                  <option value="HIGH">High</option>
+                  <option value="LOW">{t('priority.low')}</option>
+                  <option value="MEDIUM">{t('priority.medium')}</option>
+                  <option value="HIGH">{t('priority.high')}</option>
                 </select>
               </div>
 
@@ -438,14 +446,14 @@ function Homework() {
                   type="submit"
                   className="btn btn-primary flex-1"
                 >
-                  {editingHomework ? 'Update Homework' : 'Create Homework'}
+                  {editingHomework ? t('homework.updateHomework') : t('homework.createHomework')}
                 </button>
                 <button
                   type="button"
                   onClick={closeModal}
                   className="btn btn-secondary flex-1"
                 >
-                  Cancel
+                  {t('homework.cancel')}
                 </button>
               </div>
             </form>
