@@ -68,6 +68,25 @@ class ClassType(str, Enum):
     BIOLOGY = "BIOLOGY"
     OTHER = "OTHER"
 
+class EducationLevel(str, Enum):
+    # International grades
+    GRADE_1 = "GRADE_1"
+    GRADE_2 = "GRADE_2"
+    GRADE_3 = "GRADE_3"
+    GRADE_4 = "GRADE_4"
+    GRADE_5 = "GRADE_5"
+    GRADE_6 = "GRADE_6"
+    GRADE_7 = "GRADE_7"
+    GRADE_8 = "GRADE_8"
+    GRADE_9 = "GRADE_9"
+    GRADE_10 = "GRADE_10"
+    GRADE_11 = "GRADE_11"
+    GRADE_12 = "GRADE_12"
+    # Spanish education system
+    PRIMARIA = "PRIMARIA"  # Elementary (6-12 years)
+    ESO = "ESO"  # Educación Secundaria Obligatoria (12-16 years)
+    BACHILLERATO = "BACHILLERATO"  # High school (16-18 years)
+
 # Class schemas
 class ClassBase(BaseModel):
     name: str = Field(..., max_length=100)
@@ -194,3 +213,49 @@ class DashboardSummary(BaseModel):
     due_today: int
     overdue: int
     completed_this_week: int
+
+# Notes schemas
+class NoteBase(BaseModel):
+    title: str = Field(..., max_length=200)
+    content: str = Field(..., max_length=5000)
+    class_type: ClassType = Field(..., description="Class type this note relates to")
+    is_public: bool = Field(False, description="Whether this note is publicly visible")
+    school: Optional[str] = Field(None, max_length=200, description="School name")
+    education_level: Optional[EducationLevel] = Field(None, description="Education level")
+
+class NoteCreate(NoteBase):
+    pass
+
+class NoteUpdate(BaseModel):
+    title: Optional[str] = Field(None, max_length=200)
+    content: Optional[str] = Field(None, max_length=5000)
+    class_type: Optional[ClassType] = None
+    is_public: Optional[bool] = None
+    school: Optional[str] = Field(None, max_length=200)
+    education_level: Optional[EducationLevel] = None
+
+class Note(NoteBase):
+    id: int
+    user_id: int
+    year: str  # Automatically determined from user's classes
+    created_at: datetime
+    updated_at: datetime
+    user: Optional[User] = None
+
+    class Config:
+        from_attributes = True
+
+# Public notes response (excludes user details for privacy)
+class PublicNote(BaseModel):
+    id: int
+    title: str
+    content: str
+    class_type: ClassType
+    year: str
+    school: Optional[str] = None
+    education_level: Optional[EducationLevel] = None
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
