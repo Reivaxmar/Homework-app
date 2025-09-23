@@ -265,11 +265,11 @@ function Classes() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Teacher
+                  {t('classes.teacher')}
                 </label>
                 <input
                   type="text"
-                  {...register('teacher', { required: 'Teacher name is required' })}
+                  {...register('teacher', { required: t('classes.teacherRequired') })}
                   className="input"
                   placeholder="e.g., Mr. Smith"
                 />
@@ -280,11 +280,11 @@ function Classes() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Year
+                  {t('classes.year')}
                 </label>
                 <input
                   type="text"
-                  {...register('year', { required: 'Year is required' })}
+                  {...register('year', { required: t('classes.yearRequired') })}
                   className="input"
                   placeholder="e.g., 2023-2024"
                 />
@@ -295,7 +295,7 @@ function Classes() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Half Group (Optional)
+                  {t('classes.halfGroup')}
                 </label>
                 <input
                   type="text"
