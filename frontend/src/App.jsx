@@ -11,6 +11,7 @@ import Dashboard from './pages/Dashboard'
 import Classes from './pages/Classes'
 import Schedule from './pages/Schedule'
 import Homework from './pages/Homework'
+import Notes from './pages/Notes'
 
 function App() {
   return (
@@ -30,6 +31,7 @@ function App() {
                       <Route path="/classes" element={<Classes />} />
                       <Route path="/schedule" element={<Schedule />} />
                       <Route path="/homework" element={<Homework />} />
+                      <Route path="/notes" element={<Notes />} />
                     </Routes>
                   </Layout>
                 </ProtectedRoute>

@@ -8,7 +8,8 @@ import {
   Menu, 
   X,
   User,
-  LogOut 
+  LogOut,
+  FileText
 } from 'lucide-react'
 import { useAuth } from '../contexts/AuthContext'
 import { useLanguage } from '../contexts/LanguageContext'
@@ -27,6 +28,7 @@ function Layout({ children }) {
     { name: t('nav.classes'), href: '/classes', icon: BookOpen },
     { name: t('nav.schedule'), href: '/schedule', icon: Calendar },
     { name: t('nav.homework'), href: '/homework', icon: CheckSquare },
+    { name: 'Notes', href: '/notes', icon: FileText },
   ]
 
   const handleLogout = () => {
