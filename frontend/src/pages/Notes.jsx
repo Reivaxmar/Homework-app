@@ -6,7 +6,7 @@ import { notesAPI, classesAPI } from '../services/api'
 import { useLanguage } from '../contexts/LanguageContext'
 
 function Notes() {
-  const { t } = useLanguage()
+  const { t, language } = useLanguage()
   const [activeTab, setActiveTab] = useState('my-notes')
   const [notes, setNotes] = useState([])
   const [publicNotes, setPublicNotes] = useState([])
@@ -26,7 +26,7 @@ function Notes() {
 
   useEffect(() => {
     fetchInitialData()
-  }, [])
+  }, [language])  // Re-fetch when language changes
 
   useEffect(() => {
     if (activeTab === 'my-notes') {
@@ -40,7 +40,7 @@ function Notes() {
     try {
       const [classTypesRes, educationLevelsRes] = await Promise.all([
         classesAPI.getTypes(),
-        notesAPI.getEducationLevels()
+        notesAPI.getEducationLevels(language)
       ])
       setClassTypes(classTypesRes.data)
       setEducationLevels(educationLevelsRes.data)

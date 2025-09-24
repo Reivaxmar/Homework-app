@@ -91,9 +91,26 @@ def get_public_notes(
     return public_notes
 
 @router.get("/education-levels", response_model=List[str])
-def get_education_levels():
-    """Get all available education levels"""
-    return [level.value for level in EducationLevel]
+def get_education_levels(lang: Optional[str] = Query(None)):
+    """Get available education levels, optionally filtered by language"""
+    if lang == "en":
+        # Return international grades for English
+        international_levels = [
+            EducationLevel.GRADE_1, EducationLevel.GRADE_2, EducationLevel.GRADE_3,
+            EducationLevel.GRADE_4, EducationLevel.GRADE_5, EducationLevel.GRADE_6,
+            EducationLevel.GRADE_7, EducationLevel.GRADE_8, EducationLevel.GRADE_9,
+            EducationLevel.GRADE_10, EducationLevel.GRADE_11, EducationLevel.GRADE_12
+        ]
+        return [level.value for level in international_levels]
+    elif lang == "es":
+        # Return Spanish education system levels for Spanish
+        spanish_levels = [
+            EducationLevel.PRIMARIA, EducationLevel.ESO, EducationLevel.BACHILLERATO
+        ]
+        return [level.value for level in spanish_levels]
+    else:
+        # Return all levels if no language specified (backward compatibility)
+        return [level.value for level in EducationLevel]
 
 @router.get("/{note_id}", response_model=schemas.Note)
 def get_note(
