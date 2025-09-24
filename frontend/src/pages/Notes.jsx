@@ -1,0 +1,504 @@
+import React, { useState, useEffect } from 'react'
+import { Plus, Edit2, Trash2, Eye, EyeOff, Search, Filter, BookOpen, School, GraduationCap, Globe } from 'lucide-react'
+import { useForm } from 'react-hook-form'
+import toast from 'react-hot-toast'
+import { notesAPI, classesAPI } from '../services/api'
+import { useLanguage } from '../contexts/LanguageContext'
+
+function Notes() {
+  const { t } = useLanguage()
+  const [activeTab, setActiveTab] = useState('my-notes')
+  const [notes, setNotes] = useState([])
+  const [publicNotes, setPublicNotes] = useState([])
+  const [classTypes, setClassTypes] = useState([])
+  const [educationLevels, setEducationLevels] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [showModal, setShowModal] = useState(false)
+  const [editingNote, setEditingNote] = useState(null)
+  const [filters, setFilters] = useState({
+    class_type: '',
+    education_level: '',
+    year: '',
+    school: ''
+  })
+  
+  const { register, handleSubmit, reset, watch, formState: { errors } } = useForm()
+
+  useEffect(() => {
+    fetchInitialData()
+  }, [])
+
+  useEffect(() => {
+    if (activeTab === 'my-notes') {
+      fetchNotes()
+    } else {
+      fetchPublicNotes()
+    }
+  }, [activeTab, filters])
+
+  const fetchInitialData = async () => {
+    try {
+      const [classTypesRes, educationLevelsRes] = await Promise.all([
+        classesAPI.getTypes(),
+        notesAPI.getEducationLevels()
+      ])
+      setClassTypes(classTypesRes.data)
+      setEducationLevels(educationLevelsRes.data)
+    } catch (error) {
+      console.error('Error fetching initial data:', error)
+    }
+  }
+
+  const fetchNotes = async () => {
+    try {
+      setLoading(true)
+      const params = activeTab === 'my-notes' ? {} : filters
+      const response = await notesAPI.getAll(params)
+      setNotes(response.data)
+    } catch (error) {
+      toast.error('Error loading notes')
+      console.error('Error fetching notes:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const fetchPublicNotes = async () => {
+    try {
+      setLoading(true)
+      const cleanFilters = Object.fromEntries(
+        Object.entries(filters).filter(([_, value]) => value !== '')
+      )
+      const response = await notesAPI.getPublic(cleanFilters)
+      setPublicNotes(response.data)
+    } catch (error) {
+      toast.error('Error loading public notes')
+      console.error('Error fetching public notes:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const formatClassType = (classType) => {
+    return classType
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ')
+  }
+
+  const formatEducationLevel = (level) => {
+    if (level.startsWith('GRADE_')) {
+      return `Grade ${level.split('_')[1]}`
+    }
+    return level
+  }
+
+  const onSubmit = async (data) => {
+    try {
+      if (editingNote) {
+        await notesAPI.update(editingNote.id, data)
+        toast.success('Note updated successfully')
+      } else {
+        await notesAPI.create(data)
+        toast.success('Note created successfully')
+      }
+      setShowModal(false)
+      setEditingNote(null)
+      reset()
+      fetchNotes()
+    } catch (error) {
+      toast.error(editingNote ? 'Error updating note' : 'Error creating note')
+      console.error('Error saving note:', error)
+    }
+  }
+
+  const handleEdit = (note) => {
+    setEditingNote(note)
+    reset(note)
+    setShowModal(true)
+  }
+
+  const handleDelete = async (note) => {
+    if (window.confirm('Are you sure you want to delete this note?')) {
+      try {
+        await notesAPI.delete(note.id)
+        toast.success('Note deleted successfully')
+        fetchNotes()
+      } catch (error) {
+        toast.error('Error deleting note')
+        console.error('Error deleting note:', error)
+      }
+    }
+  }
+
+  const handleFilterChange = (key, value) => {
+    setFilters(prev => ({ ...prev, [key]: value }))
+  }
+
+  const clearFilters = () => {
+    setFilters({
+      class_type: '',
+      education_level: '',
+      year: '',
+      school: ''
+    })
+  }
+
+  const currentNotes = activeTab === 'my-notes' ? notes : publicNotes
+
+  if (loading && currentNotes.length === 0) {
+    return (
+      <div className="flex items-center justify-center min-h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Notes</h1>
+          <p className="text-gray-600">Manage your study notes and explore shared knowledge</p>
+        </div>
+        {activeTab === 'my-notes' && (
+          <button
+            onClick={() => {
+              setEditingNote(null)
+              reset()
+              setShowModal(true)
+            }}
+            className="btn-primary flex items-center gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            Add Note
+          </button>
+        )}
+      </div>
+
+      {/* Tabs */}
+      <div className="border-b border-gray-200">
+        <nav className="-mb-px flex space-x-8">
+          <button
+            onClick={() => setActiveTab('my-notes')}
+            className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              activeTab === 'my-notes'
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              <BookOpen className="h-4 w-4" />
+              My Notes
+            </div>
+          </button>
+          <button
+            onClick={() => setActiveTab('explorer')}
+            className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              activeTab === 'explorer'
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              <Globe className="h-4 w-4" />
+              Explore Public Notes
+            </div>
+          </button>
+        </nav>
+      </div>
+
+      {/* Filters for Explorer */}
+      {activeTab === 'explorer' && (
+        <div className="card p-4">
+          <div className="flex items-center gap-2 mb-4">
+            <Filter className="h-4 w-4" />
+            <span className="font-medium">Filters</span>
+            <button
+              onClick={clearFilters}
+              className="text-sm text-blue-600 hover:text-blue-800 ml-auto"
+            >
+              Clear All
+            </button>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Subject
+              </label>
+              <select
+                value={filters.class_type}
+                onChange={(e) => handleFilterChange('class_type', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              >
+                <option value="">All Subjects</option>
+                {classTypes.map(type => (
+                  <option key={type} value={type}>
+                    {formatClassType(type)}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Education Level
+              </label>
+              <select
+                value={filters.education_level}
+                onChange={(e) => handleFilterChange('education_level', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              >
+                <option value="">All Levels</option>
+                {educationLevels.map(level => (
+                  <option key={level} value={level}>
+                    {formatEducationLevel(level)}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Year
+              </label>
+              <input
+                type="text"
+                placeholder="e.g., 2023-2024"
+                value={filters.year}
+                onChange={(e) => handleFilterChange('year', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                School
+              </label>
+              <input
+                type="text"
+                placeholder="School name"
+                value={filters.school}
+                onChange={(e) => handleFilterChange('school', e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Notes List */}
+      {currentNotes.length === 0 ? (
+        <div className="text-center py-12">
+          <BookOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">
+            {activeTab === 'my-notes' ? 'No notes yet' : 'No public notes found'}
+          </h3>
+          <p className="text-gray-600">
+            {activeTab === 'my-notes' 
+              ? 'Create your first note to get started'
+              : 'Try adjusting your filters or check back later'
+            }
+          </p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {currentNotes.map((note) => (
+            <div key={note.id} className="card p-6">
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex-1">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                    {note.title}
+                  </h3>
+                  <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
+                    <BookOpen className="h-4 w-4" />
+                    <span>{formatClassType(note.class_type)}</span>
+                  </div>
+                  {note.education_level && (
+                    <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
+                      <GraduationCap className="h-4 w-4" />
+                      <span>{formatEducationLevel(note.education_level)}</span>
+                    </div>
+                  )}
+                  {note.school && (
+                    <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
+                      <School className="h-4 w-4" />
+                      <span>{note.school}</span>
+                    </div>
+                  )}
+                </div>
+                {activeTab === 'my-notes' && (
+                  <div className="flex gap-2">
+                    {note.is_public ? (
+                      <Eye className="h-4 w-4 text-green-600" title="Public" />
+                    ) : (
+                      <EyeOff className="h-4 w-4 text-gray-400" title="Private" />
+                    )}
+                    <button
+                      onClick={() => handleEdit(note)}
+                      className="p-1 text-gray-400 hover:text-gray-600"
+                    >
+                      <Edit2 className="h-4 w-4" />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(note)}
+                      className="p-1 text-gray-400 hover:text-red-600"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+                )}
+              </div>
+              
+              <div className="text-gray-700 text-sm mb-3 line-clamp-3">
+                {note.content}
+              </div>
+              
+              <div className="flex justify-between items-center text-xs text-gray-500">
+                <span>Year: {note.year}</span>
+                <span>{new Date(note.updated_at).toLocaleDateString()}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Modal */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <form onSubmit={handleSubmit(onSubmit)} className="p-6 space-y-4">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-semibold">
+                  {editingNote ? 'Edit Note' : 'Create New Note'}
+                </h2>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowModal(false)
+                    setEditingNote(null)
+                    reset()
+                  }}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  ×
+                </button>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Title *
+                </label>
+                <input
+                  type="text"
+                  {...register('title', { required: 'Title is required' })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                />
+                {errors.title && (
+                  <p className="text-red-500 text-sm mt-1">{errors.title.message}</p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Content *
+                </label>
+                <textarea
+                  rows={8}
+                  {...register('content', { required: 'Content is required' })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                />
+                {errors.content && (
+                  <p className="text-red-500 text-sm mt-1">{errors.content.message}</p>
+                )}
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Subject *
+                  </label>
+                  <select
+                    {...register('class_type', { required: 'Subject is required' })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  >
+                    <option value="">Select Subject</option>
+                    {classTypes.map(type => (
+                      <option key={type} value={type}>
+                        {formatClassType(type)}
+                      </option>
+                    ))}
+                  </select>
+                  {errors.class_type && (
+                    <p className="text-red-500 text-sm mt-1">{errors.class_type.message}</p>
+                  )}
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Education Level
+                  </label>
+                  <select
+                    {...register('education_level')}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  >
+                    <option value="">Select Level</option>
+                    {educationLevels.map(level => (
+                      <option key={level} value={level}>
+                        {formatEducationLevel(level)}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  School
+                </label>
+                <input
+                  type="text"
+                  {...register('school')}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  placeholder="Enter school name"
+                />
+              </div>
+
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  id="is_public"
+                  {...register('is_public')}
+                  className="h-4 w-4 text-blue-600 border-gray-300 rounded"
+                />
+                <label htmlFor="is_public" className="ml-2 text-sm text-gray-700">
+                  Make this note public (others can view it)
+                </label>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowModal(false)
+                    setEditingNote(null)
+                    reset()
+                  }}
+                  className="px-4 py-2 text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="btn-primary"
+                >
+                  {editingNote ? 'Update Note' : 'Create Note'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+export default Notes

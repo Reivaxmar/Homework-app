@@ -4,7 +4,7 @@ from fastapi.staticfiles import StaticFiles
 import os
 
 from .models.database import engine, Base
-from .routers import classes, schedules, homework, dashboard, auth, calendar
+from .routers import classes, schedules, homework, dashboard, auth, calendar, notes
 
 # Create database tables
 Base.metadata.create_all(bind=engine)
@@ -30,6 +30,7 @@ app.include_router(calendar.router, prefix="/api")
 app.include_router(classes.router, prefix="/api")
 app.include_router(schedules.router, prefix="/api")
 app.include_router(homework.router, prefix="/api")
+app.include_router(notes.router, prefix="/api")
 app.include_router(dashboard.router, prefix="/api")
 
 @app.get("/")

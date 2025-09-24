@@ -29,6 +29,7 @@ class User(Base):
     classes = relationship("Class", back_populates="user")
     schedules = relationship("Schedule", back_populates="user")
     homework = relationship("Homework", back_populates="user")
+    notes = relationship("Note", back_populates="user")
     
     def get_timezone(self):
         """Get user's timezone, defaulting to UTC if not set"""

@@ -65,4 +65,18 @@ export const dashboardAPI = {
   clearAllData: () => api.delete('/api/dashboard/clear-all-data'),
 }
 
+// Notes API
+export const notesAPI = {
+  // User notes
+  getAll: (params = {}) => api.get('/api/notes/', { params }),
+  getById: (id) => api.get(`/api/notes/${id}`),
+  create: (data) => api.post('/api/notes/', data),
+  update: (id, data) => api.put(`/api/notes/${id}`, data),
+  delete: (id) => api.delete(`/api/notes/${id}`),
+  
+  // Public notes exploration
+  getPublic: (params = {}) => api.get('/api/notes/public', { params }),
+  getEducationLevels: () => api.get('/api/notes/education-levels'),
+}
+
 export default api
