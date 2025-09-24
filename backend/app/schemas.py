@@ -213,11 +213,17 @@ class DashboardSummary(BaseModel):
 # Notes schemas
 class NoteBase(BaseModel):
     title: str = Field(..., max_length=200)
-    content: str = Field(..., max_length=5000)
+    content: str = Field(..., max_length=5000, description="Note content or description of the shared Google Drive document")
     class_type: ClassType = Field(..., description="Class type this note relates to")
     is_public: bool = Field(False, description="Whether this note is publicly visible")
     school: Optional[str] = Field(None, max_length=200, description="School name")
     education_level: Optional[EducationLevel] = Field(None, description="Education level")
+    
+    # Google Drive fields
+    google_drive_file_id: Optional[str] = Field(None, max_length=100, description="Google Drive file ID")
+    google_drive_file_url: Optional[str] = Field(None, max_length=500, description="Direct link to Google Drive file")
+    google_drive_file_name: Optional[str] = Field(None, max_length=255, description="Original file name from Google Drive")
+    google_drive_mime_type: Optional[str] = Field(None, max_length=100, description="MIME type of the Google Drive file")
 
 class NoteCreate(NoteBase):
     pass
@@ -229,6 +235,12 @@ class NoteUpdate(BaseModel):
     is_public: Optional[bool] = None
     school: Optional[str] = Field(None, max_length=200)
     education_level: Optional[EducationLevel] = None
+    
+    # Google Drive fields for updates
+    google_drive_file_id: Optional[str] = Field(None, max_length=100)
+    google_drive_file_url: Optional[str] = Field(None, max_length=500)
+    google_drive_file_name: Optional[str] = Field(None, max_length=255)
+    google_drive_mime_type: Optional[str] = Field(None, max_length=100)
 
 class Note(NoteBase):
     id: int
@@ -252,6 +264,12 @@ class PublicNote(BaseModel):
     education_level: Optional[EducationLevel] = None
     created_at: datetime
     updated_at: datetime
+    
+    # Google Drive fields for public notes
+    google_drive_file_id: Optional[str] = None
+    google_drive_file_url: Optional[str] = None
+    google_drive_file_name: Optional[str] = None
+    google_drive_mime_type: Optional[str] = None
 
     class Config:
         from_attributes = True

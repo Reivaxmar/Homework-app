@@ -9,6 +9,7 @@ from ..models.notes import Note, EducationLevel
 from ..models.classes import Class, ClassType
 from ..models.user import User
 from ..auth import get_current_user
+from ..services.google_drive import GoogleDriveService
 from .. import schemas
 
 logger = logging.getLogger(__name__)
@@ -85,7 +86,11 @@ def get_public_notes(
             school=note.school,
             education_level=note.education_level,
             created_at=note.created_at,
-            updated_at=note.updated_at
+            updated_at=note.updated_at,
+            google_drive_file_id=note.google_drive_file_id,
+            google_drive_file_url=note.google_drive_file_url,
+            google_drive_file_name=note.google_drive_file_name,
+            google_drive_mime_type=note.google_drive_mime_type
         ))
     
     return public_notes
@@ -152,6 +157,41 @@ def create_note(
     note_dict["user_id"] = current_user.id
     note_dict["year"] = current_year
     
+    # Process Google Drive file if provided
+    if note_dict.get('google_drive_file_url') and note_dict['google_drive_file_url'].strip():
+        try:
+            drive_service = GoogleDriveService(current_user)
+            
+            # Extract file ID from URL
+            file_id = drive_service.extract_file_id_from_url(note_dict['google_drive_file_url'])
+            if file_id and drive_service.verify_file_access(file_id):
+                file_info = drive_service.get_file_info(file_id)
+                if file_info:
+                    note_dict['google_drive_file_id'] = file_id
+                    note_dict['google_drive_file_url'] = file_info.get('webViewLink')
+                    note_dict['google_drive_file_name'] = note_dict.get('google_drive_file_name') or file_info.get('name')
+                    note_dict['google_drive_mime_type'] = file_info.get('mimeType')
+                    
+                    # Make file shareable if note is public
+                    if note_dict.get('is_public', False):
+                        drive_service.make_file_shareable(file_id)
+                else:
+                    logger.warning(f"Could not get file info for {file_id}")
+            else:
+                logger.warning(f"Invalid or inaccessible Google Drive file: {note_dict['google_drive_file_url']}")
+                # Clear invalid Google Drive data
+                note_dict['google_drive_file_id'] = None
+                note_dict['google_drive_file_url'] = None
+                note_dict['google_drive_file_name'] = None
+                note_dict['google_drive_mime_type'] = None
+        except Exception as e:
+            logger.warning(f"Error processing Google Drive file during note creation: {str(e)}")
+            # Clear Google Drive data if there's an error
+            note_dict['google_drive_file_id'] = None
+            note_dict['google_drive_file_url'] = None
+            note_dict['google_drive_file_name'] = None
+            note_dict['google_drive_mime_type'] = None
+    
     db_note = Note(**note_dict)
     db.add(db_note)
     db.commit()
@@ -178,6 +218,67 @@ def update_note(
     
     # Update note fields
     update_data = note_data.dict(exclude_unset=True)
+    
+    # Process Google Drive file if URL is being updated
+    if 'google_drive_file_url' in update_data:
+        drive_url = update_data.get('google_drive_file_url')
+        
+        if drive_url and drive_url.strip():
+            try:
+                drive_service = GoogleDriveService(current_user)
+                
+                # Extract file ID from URL
+                file_id = drive_service.extract_file_id_from_url(drive_url)
+                if file_id and drive_service.verify_file_access(file_id):
+                    file_info = drive_service.get_file_info(file_id)
+                    if file_info:
+                        update_data['google_drive_file_id'] = file_id
+                        update_data['google_drive_file_url'] = file_info.get('webViewLink')
+                        # Only update file name if not explicitly provided
+                        if 'google_drive_file_name' not in update_data or not update_data['google_drive_file_name']:
+                            update_data['google_drive_file_name'] = file_info.get('name')
+                        update_data['google_drive_mime_type'] = file_info.get('mimeType')
+                        
+                        # Make file shareable if note is or will be public
+                        is_public = update_data.get('is_public', note.is_public)
+                        if is_public:
+                            drive_service.make_file_shareable(file_id)
+                    else:
+                        logger.warning(f"Could not get file info for {file_id}")
+                        # Clear invalid Google Drive data
+                        update_data.update({
+                            'google_drive_file_id': None,
+                            'google_drive_file_url': None,
+                            'google_drive_file_name': None,
+                            'google_drive_mime_type': None
+                        })
+                else:
+                    logger.warning(f"Invalid or inaccessible Google Drive file: {drive_url}")
+                    # Clear invalid Google Drive data
+                    update_data.update({
+                        'google_drive_file_id': None,
+                        'google_drive_file_url': None,
+                        'google_drive_file_name': None,
+                        'google_drive_mime_type': None
+                    })
+            except Exception as e:
+                logger.warning(f"Error processing Google Drive file during note update: {str(e)}")
+                # Clear Google Drive data if there's an error
+                update_data.update({
+                    'google_drive_file_id': None,
+                    'google_drive_file_url': None,
+                    'google_drive_file_name': None,
+                    'google_drive_mime_type': None
+                })
+        else:
+            # Empty URL - clear all Google Drive data
+            update_data.update({
+                'google_drive_file_id': None,
+                'google_drive_file_url': None,
+                'google_drive_file_name': None,
+                'google_drive_mime_type': None
+            })
+    
     for field, value in update_data.items():
         setattr(note, field, value)
     
@@ -205,3 +306,124 @@ def delete_note(
     db.delete(note)
     db.commit()
     return None
+
+# Google Drive integration endpoints
+
+@router.post("/google-drive/attach", response_model=schemas.Note, status_code=status.HTTP_200_OK)
+def attach_google_drive_file(
+    note_id: int,
+    drive_url: str = Query(..., description="Google Drive file URL or ID"),
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Attach a Google Drive file to an existing note"""
+    # Get the note
+    note = db.query(Note).filter(
+        and_(
+            Note.id == note_id,
+            Note.user_id == current_user.id
+        )
+    ).first()
+    
+    if not note:
+        raise HTTPException(status_code=404, detail="Note not found")
+    
+    try:
+        # Initialize Google Drive service
+        drive_service = GoogleDriveService(current_user)
+        
+        # Extract file ID from URL
+        file_id = drive_service.extract_file_id_from_url(drive_url)
+        if not file_id:
+            raise HTTPException(status_code=400, detail="Invalid Google Drive URL or file ID")
+        
+        # Verify user has access to the file
+        if not drive_service.verify_file_access(file_id):
+            raise HTTPException(status_code=403, detail="You don't have access to this Google Drive file")
+        
+        # Get file information
+        file_info = drive_service.get_file_info(file_id)
+        if not file_info:
+            raise HTTPException(status_code=404, detail="Google Drive file not found")
+        
+        # If note is public, make the file shareable
+        if note.is_public:
+            if not drive_service.make_file_shareable(file_id):
+                logger.warning(f"Could not make file {file_id} publicly shareable for public note")
+        
+        # Update note with Google Drive file information
+        note.google_drive_file_id = file_id
+        note.google_drive_file_url = file_info.get('webViewLink')
+        note.google_drive_file_name = file_info.get('name')
+        note.google_drive_mime_type = file_info.get('mimeType')
+        
+        db.commit()
+        db.refresh(note)
+        
+        logger.info(f"Attached Google Drive file {file_id} to note {note_id}")
+        return note
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error attaching Google Drive file: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to attach Google Drive file")
+
+@router.delete("/{note_id}/google-drive", response_model=schemas.Note, status_code=status.HTTP_200_OK)
+def detach_google_drive_file(
+    note_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Detach Google Drive file from a note"""
+    note = db.query(Note).filter(
+        and_(
+            Note.id == note_id,
+            Note.user_id == current_user.id
+        )
+    ).first()
+    
+    if not note:
+        raise HTTPException(status_code=404, detail="Note not found")
+    
+    # Clear Google Drive file information
+    note.google_drive_file_id = None
+    note.google_drive_file_url = None
+    note.google_drive_file_name = None
+    note.google_drive_mime_type = None
+    
+    db.commit()
+    db.refresh(note)
+    
+    logger.info(f"Detached Google Drive file from note {note_id}")
+    return note
+
+@router.get("/google-drive/file-info/{file_id}")
+def get_drive_file_info(
+    file_id: str,
+    current_user: User = Depends(get_current_user)
+):
+    """Get information about a Google Drive file"""
+    try:
+        drive_service = GoogleDriveService(current_user)
+        
+        # Verify user has access to the file
+        if not drive_service.verify_file_access(file_id):
+            raise HTTPException(status_code=403, detail="You don't have access to this Google Drive file")
+        
+        file_info = drive_service.get_file_info(file_id)
+        if not file_info:
+            raise HTTPException(status_code=404, detail="Google Drive file not found")
+        
+        return {
+            "id": file_info.get("id"),
+            "name": file_info.get("name"),
+            "mimeType": file_info.get("mimeType"),
+            "webViewLink": file_info.get("webViewLink")
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error getting Google Drive file info: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to get file information")

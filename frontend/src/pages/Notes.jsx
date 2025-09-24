@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Plus, Edit2, Trash2, Eye, EyeOff, Search, Filter, BookOpen, School, GraduationCap, Globe } from 'lucide-react'
+import { Plus, Edit2, Trash2, Eye, EyeOff, Search, Filter, BookOpen, School, GraduationCap, Globe, Link, FileText, ExternalLink } from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import toast from 'react-hot-toast'
 import { notesAPI, classesAPI } from '../services/api'
@@ -21,6 +21,10 @@ function Notes() {
     year: '',
     school: ''
   })
+  
+  // Google Drive state
+  const [driveUrl, setDriveUrl] = useState('')
+  const [attachingDriveFile, setAttachingDriveFile] = useState(false)
   
   const { register, handleSubmit, reset, watch, formState: { errors } } = useForm()
 
@@ -114,7 +118,8 @@ function Notes() {
       reset()
       fetchNotes()
     } catch (error) {
-      toast.error(editingNote ? 'Error updating note' : 'Error creating note')
+      const errorMessage = error.response?.data?.detail || (editingNote ? 'Error updating note' : 'Error creating note')
+      toast.error(errorMessage)
       console.error('Error saving note:', error)
     }
   }
@@ -149,6 +154,118 @@ function Notes() {
       year: '',
       school: ''
     })
+  }
+
+  // Google Drive functions
+  const handleAttachDriveFile = async (noteId) => {
+    if (!driveUrl.trim()) {
+      toast.error('Please enter a Google Drive URL')
+      return
+    }
+
+    try {
+      setAttachingDriveFile(true)
+      await notesAPI.attachDriveFile(noteId, driveUrl)
+      toast.success('Google Drive file attached successfully')
+      setDriveUrl('')
+      fetchNotes()
+    } catch (error) {
+      toast.error(error.response?.data?.detail || 'Error attaching Google Drive file')
+      console.error('Error attaching drive file:', error)
+    } finally {
+      setAttachingDriveFile(false)
+    }
+  }
+
+  const handleDetachDriveFile = async (noteId) => {
+    if (window.confirm('Are you sure you want to remove the Google Drive file from this note?')) {
+      try {
+        await notesAPI.detachDriveFile(noteId)
+        toast.success('Google Drive file detached successfully')
+        fetchNotes()
+      } catch (error) {
+        toast.error('Error detaching Google Drive file')
+        console.error('Error detaching drive file:', error)
+      }
+    }
+  }
+
+  const renderDriveFileInfo = (note) => {
+    if (!note.google_drive_file_id) return null
+
+    return (
+      <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <FileText className="h-4 w-4 text-blue-600" />
+            <div>
+              <p className="text-sm font-medium text-blue-900">
+                {note.google_drive_file_name || 'Google Drive File'}
+              </p>
+              {note.google_drive_mime_type && (
+                <p className="text-xs text-blue-600">
+                  {note.google_drive_mime_type.split('/')[1]?.toUpperCase() || 'Document'}
+                </p>
+              )}
+            </div>
+          </div>
+          <div className="flex gap-1">
+            {note.google_drive_file_url && (
+              <a
+                href={note.google_drive_file_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-1 text-blue-600 hover:text-blue-800"
+                title="Open in Google Drive"
+              >
+                <ExternalLink className="h-4 w-4" />
+              </a>
+            )}
+            {activeTab === 'my-notes' && (
+              <button
+                onClick={() => handleDetachDriveFile(note.id)}
+                className="p-1 text-red-400 hover:text-red-600"
+                title="Remove Google Drive file"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  const renderDriveAttachment = (note) => {
+    if (activeTab !== 'my-notes') return null
+
+    return (
+      <div className="mt-3 p-3 bg-gray-50 border rounded-lg">
+        <div className="flex items-center gap-2 mb-2">
+          <Link className="h-4 w-4 text-gray-600" />
+          <span className="text-sm font-medium text-gray-700">Attach Google Drive File</span>
+        </div>
+        <div className="flex gap-2">
+          <input
+            type="text"
+            placeholder="Paste Google Drive URL or file ID here"
+            value={driveUrl}
+            onChange={(e) => setDriveUrl(e.target.value)}
+            className="flex-1 px-3 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <button
+            onClick={() => handleAttachDriveFile(note.id)}
+            disabled={attachingDriveFile || !driveUrl.trim()}
+            className="px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-300"
+          >
+            {attachingDriveFile ? 'Attaching...' : 'Attach'}
+          </button>
+        </div>
+        <p className="text-xs text-gray-500 mt-1">
+          You can paste any Google Drive shareable link or file ID
+        </p>
+      </div>
+    )
   }
 
   const currentNotes = activeTab === 'my-notes' ? notes : publicNotes
@@ -359,10 +476,16 @@ function Notes() {
                 {note.content}
               </div>
               
+              {/* Google Drive File Display */}
+              {renderDriveFileInfo(note)}
+              
               <div className="flex justify-between items-center text-xs text-gray-500">
                 <span>Year: {note.year}</span>
                 <span>{new Date(note.updated_at).toLocaleDateString()}</span>
               </div>
+              
+              {/* Google Drive Attachment Section for My Notes */}
+              {activeTab === 'my-notes' && !note.google_drive_file_id && renderDriveAttachment(note)}
             </div>
           ))}
         </div>
@@ -406,16 +529,57 @@ function Notes() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Content *
+                  Content / Description *
                 </label>
                 <textarea
-                  rows={8}
+                  rows={6}
                   {...register('content', { required: 'Content is required' })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  placeholder="Enter note content or a description of your shared Google Drive document"
                 />
                 {errors.content && (
                   <p className="text-red-500 text-sm mt-1">{errors.content.message}</p>
                 )}
+                <p className="text-xs text-gray-500 mt-1">
+                  When sharing a Google Drive file, this can serve as a description of the document
+                </p>
+              </div>
+
+              {/* Google Drive Integration */}
+              <div className="border-t pt-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <FileText className="h-4 w-4 text-blue-600" />
+                  <span className="text-sm font-medium text-gray-700">Google Drive File (Optional)</span>
+                </div>
+                
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Google Drive URL or File ID
+                    </label>
+                    <input
+                      type="text"
+                      {...register('google_drive_file_url')}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                      placeholder="https://drive.google.com/file/d/... or paste file ID"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Paste any Google Drive shareable link. The file will be linked to this note.
+                    </p>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      File Name (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      {...register('google_drive_file_name')}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                      placeholder="Custom display name for the file"
+                    />
+                  </div>
+                </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

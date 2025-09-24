@@ -80,6 +80,11 @@ export const notesAPI = {
     const params = lang ? { lang } : {}
     return api.get('/api/notes/education-levels', { params })
   },
+  
+  // Google Drive integration
+  attachDriveFile: (noteId, driveUrl) => api.post(`/api/notes/google-drive/attach?note_id=${noteId}&drive_url=${encodeURIComponent(driveUrl)}`),
+  detachDriveFile: (noteId) => api.delete(`/api/notes/${noteId}/google-drive`),
+  getDriveFileInfo: (fileId) => api.get(`/api/notes/google-drive/file-info/${fileId}`),
 }
 
 export default api
