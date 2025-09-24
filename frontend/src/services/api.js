@@ -77,6 +77,11 @@ export const notesAPI = {
   // Public notes exploration
   getPublic: (params = {}) => api.get('/api/notes/public', { params }),
   getEducationLevels: () => api.get('/api/notes/education-levels'),
+  
+  // Google Drive integration
+  attachDriveFile: (noteId, driveUrl) => api.post(`/api/notes/google-drive/attach?note_id=${noteId}&drive_url=${encodeURIComponent(driveUrl)}`),
+  detachDriveFile: (noteId) => api.delete(`/api/notes/${noteId}/google-drive`),
+  getDriveFileInfo: (fileId) => api.get(`/api/notes/google-drive/file-info/${fileId}`),
 }
 
 export default api
