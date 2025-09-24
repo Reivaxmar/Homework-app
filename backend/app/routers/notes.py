@@ -90,27 +90,36 @@ def get_public_notes(
     
     return public_notes
 
-@router.get("/education-levels", response_model=List[str])
+@router.get("/education-levels", response_model=List[dict])
 def get_education_levels(lang: Optional[str] = Query(None)):
-    """Get available education levels, optionally filtered by language"""
-    if lang == "en":
-        # Return international grades for English
-        international_levels = [
-            EducationLevel.GRADE_1, EducationLevel.GRADE_2, EducationLevel.GRADE_3,
-            EducationLevel.GRADE_4, EducationLevel.GRADE_5, EducationLevel.GRADE_6,
-            EducationLevel.GRADE_7, EducationLevel.GRADE_8, EducationLevel.GRADE_9,
-            EducationLevel.GRADE_10, EducationLevel.GRADE_11, EducationLevel.GRADE_12
-        ]
-        return [level.value for level in international_levels]
-    elif lang == "es":
-        # Return Spanish education system levels for Spanish
-        spanish_levels = [
-            EducationLevel.PRIMARIA, EducationLevel.ESO, EducationLevel.BACHILLERATO
-        ]
-        return [level.value for level in spanish_levels]
-    else:
-        # Return all levels if no language specified (backward compatibility)
-        return [level.value for level in EducationLevel]
+    """Get available education levels with language-appropriate display names"""
+    
+    # Grade to Spanish education mapping
+    grade_to_spanish = {
+        1: "1ero Primaria", 2: "2ndo Primaria", 3: "3ero Primaria", 
+        4: "4to Primaria", 5: "5to Primaria", 6: "6to Primaria",
+        7: "1ero ESO", 8: "2ndo ESO", 9: "3ero ESO", 10: "4to ESO",
+        11: "1ero Bachillerato", 12: "2ndo Bachillerato"
+    }
+    
+    levels = []
+    # Only use international grades (GRADE_1 through GRADE_12) as backend values
+    for i in range(1, 13):
+        grade_enum = f"GRADE_{i}"
+        if lang == "es":
+            # Spanish display format
+            levels.append({
+                "value": grade_enum,
+                "display": grade_to_spanish[i]
+            })
+        else:
+            # English display format (default)
+            levels.append({
+                "value": grade_enum,
+                "display": f"Grade {i}"
+            })
+    
+    return levels
 
 @router.get("/{note_id}", response_model=schemas.Note)
 def get_note(
