@@ -6,7 +6,7 @@ import { notesAPI, classesAPI } from '../services/api'
 import { useLanguage } from '../contexts/LanguageContext'
 
 function Notes() {
-  const { t } = useLanguage()
+  const { t, language } = useLanguage()
   const [activeTab, setActiveTab] = useState('my-notes')
   const [notes, setNotes] = useState([])
   const [publicNotes, setPublicNotes] = useState([])
@@ -26,7 +26,7 @@ function Notes() {
 
   useEffect(() => {
     fetchInitialData()
-  }, [])
+  }, [language])  // Re-fetch when language changes
 
   useEffect(() => {
     if (activeTab === 'my-notes') {
@@ -40,7 +40,7 @@ function Notes() {
     try {
       const [classTypesRes, educationLevelsRes] = await Promise.all([
         classesAPI.getTypes(),
-        notesAPI.getEducationLevels()
+        notesAPI.getEducationLevels(language)
       ])
       setClassTypes(classTypesRes.data)
       setEducationLevels(educationLevelsRes.data)
@@ -86,11 +86,18 @@ function Notes() {
       .join(' ')
   }
 
-  const formatEducationLevel = (level) => {
-    if (level.startsWith('GRADE_')) {
-      return `Grade ${level.split('_')[1]}`
+  const formatEducationLevel = (levelValue) => {
+    // Find the level object from the current education levels
+    const levelObj = educationLevels.find(level => level.value === levelValue)
+    if (levelObj) {
+      return levelObj.display
     }
-    return level
+    
+    // Fallback for backward compatibility
+    if (levelValue && levelValue.startsWith('GRADE_')) {
+      return `Grade ${levelValue.split('_')[1]}`
+    }
+    return levelValue || ''
   }
 
   const onSubmit = async (data) => {
@@ -251,8 +258,8 @@ function Notes() {
               >
                 <option value="">All Levels</option>
                 {educationLevels.map(level => (
-                  <option key={level} value={level}>
-                    {formatEducationLevel(level)}
+                  <option key={level.value} value={level.value}>
+                    {level.display}
                   </option>
                 ))}
               </select>
@@ -442,8 +449,8 @@ function Notes() {
                   >
                     <option value="">Select Level</option>
                     {educationLevels.map(level => (
-                      <option key={level} value={level}>
-                        {formatEducationLevel(level)}
+                      <option key={level.value} value={level.value}>
+                        {level.display}
                       </option>
                     ))}
                   </select>

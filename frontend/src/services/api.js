@@ -76,7 +76,10 @@ export const notesAPI = {
   
   // Public notes exploration
   getPublic: (params = {}) => api.get('/api/notes/public', { params }),
-  getEducationLevels: () => api.get('/api/notes/education-levels'),
+  getEducationLevels: (lang) => {
+    const params = lang ? { lang } : {}
+    return api.get('/api/notes/education-levels', { params })
+  },
 }
 
 export default api
