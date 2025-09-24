@@ -6,7 +6,7 @@ from .database import Base
 from .classes import ClassType
 
 class EducationLevel(PyEnum):
-    # International grades
+    # International grades (standardized backend storage)
     GRADE_1 = "GRADE_1"
     GRADE_2 = "GRADE_2"
     GRADE_3 = "GRADE_3"
@@ -19,10 +19,6 @@ class EducationLevel(PyEnum):
     GRADE_10 = "GRADE_10"
     GRADE_11 = "GRADE_11"
     GRADE_12 = "GRADE_12"
-    # Spanish education system
-    PRIMARIA = "PRIMARIA"  # Elementary (6-12 years)
-    ESO = "ESO"  # Educación Secundaria Obligatoria (12-16 years)
-    BACHILLERATO = "BACHILLERATO"  # High school (16-18 years)
 
 class Note(Base):
     __tablename__ = "notes"

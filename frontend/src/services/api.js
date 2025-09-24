@@ -76,7 +76,10 @@ export const notesAPI = {
   
   // Public notes exploration
   getPublic: (params = {}) => api.get('/api/notes/public', { params }),
-  getEducationLevels: () => api.get('/api/notes/education-levels'),
+  getEducationLevels: (lang) => {
+    const params = lang ? { lang } : {}
+    return api.get('/api/notes/education-levels', { params })
+  },
   
   // Google Drive integration
   attachDriveFile: (noteId, driveUrl) => api.post(`/api/notes/google-drive/attach?note_id=${noteId}&drive_url=${encodeURIComponent(driveUrl)}`),
